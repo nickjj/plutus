@@ -484,6 +484,13 @@ If the structure changes over time that's ok, it's just text. Since I use the
 tool all the time I will provide a battle hardened script to do 1-off
 migrations.
 
+#### Dynamic headers
+
+You will notice `Total` and `Items` columns in some of the outputs. These are
+dynamically calculated columns and do not exist on disk. The `Total` will keep
+a running total of all amounts and `Items` counts the number of items in the
+result. These help you gain insight on your numbers.
+
 #### Items
 
 ```csv
