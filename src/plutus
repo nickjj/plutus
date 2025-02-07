@@ -1,0 +1,1210 @@
+#!/usr/bin/env python3
+
+import argparse
+import configparser
+import csv
+import difflib
+import locale
+import os
+import re
+import sys
+import textwrap
+import traceback
+from datetime import datetime
+from itertools import tee
+
+try:
+    locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
+    locale_success = True
+except locale.Error:
+    locale_success = False
+
+config = configparser.ConfigParser()
+
+# ANSI escape codes for color.
+COLOR_BRIGHT_WHITE = "\033[97m"
+COLOR_RED = "\033[31m"
+COLOR_GREEN = "\033[32m"
+COLOR_YELLOW = "\033[32m"
+COLOR_BLUE = "\033[34m"
+COLOR_MAGENTA = "\033[35m"
+COLOR_CYAN = "\033[36m"
+COLOR_RESET = "\033[0m"
+
+SCRIPT_NAME = os.path.basename(f"{sys.argv[0].replace('./', '')}")
+SCRIPT_VERSION = "0.1.0"
+
+if os.getenv("PLUTUS_CONFIG"):
+    if os.sep in os.getenv("PLUTUS_CONFIG"):
+        SCRIPT_DIR = os.path.dirname(os.getenv("PLUTUS_CONFIG"))
+    else:
+        SCRIPT_DIR = os.getcwd()
+    SCRIPT_CONFIG = os.getenv("PLUTUS_CONFIG")
+else:
+    SCRIPT_DIR = f'{os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))}/{SCRIPT_NAME}'  # noqa: E501
+    SCRIPT_CONFIG = f"{SCRIPT_DIR}/config.ini"
+
+DEFAULT_PROFILE = f"{os.path.expanduser('~')}/business/{SCRIPT_NAME}.csv"
+DEMO_PROFILE = f"/tmp/{SCRIPT_NAME}.csv"
+
+CSV_HEADERS = "Date,Category,Amount,Method,Notes"
+CSV_COLUMN_INDEX = {
+    "date": 0,
+    "category": 1,
+    "amount": 2,
+    "method": 3,
+    "notes": 4,
+}
+
+REGEX_WHITESPACE = r"(^$|\"\"||^\s+.*|.*\s\"*)$"
+REGEX_DATE = r"^\d{4}-\d{2}-\d{2}$"
+REGEX_DATE_TAX_Q = r"^\d{4}-q(1|2|3|4)$"
+REGEX_CATEGORY = r"(:{2,}|^:|:$|,|'|\"|\\n)"
+REGEX_AMOUNT = r"^-?[0-9]*\.[0-9]{2}$"
+REGEX_METHOD = r"(,|'|:|\"|\\n)"
+REGEX_NOTES = r"(,|:|\"|\\n)"
+
+
+# ----------------------------------------------------------------------------
+# Internal functions
+# ----------------------------------------------------------------------------
+
+
+def color_diff(diff):
+    colored_diff = []
+
+    for line in diff:
+        if line.startswith("---") or line.startswith("+++"):
+            # Labels.
+            colored_diff.append(line)
+        elif line.startswith("@@"):
+            # Hunk headers.
+            colored_diff.append(f"{COLOR_CYAN}{line}{COLOR_RESET}")
+        elif line.startswith("-"):
+            # Lines removed.
+            colored_diff.append(f"{COLOR_RED}{line}{COLOR_RESET}")
+        elif line.startswith("+"):
+            # Lines added.
+            colored_diff.append(f"{COLOR_GREEN}{line}{COLOR_RESET}")
+        else:
+            # Context lines (no color).
+            colored_diff.append(line)
+
+    # Preserve line breaks.
+    return "\n".join(colored_diff)
+
+
+def generate_diff(a, b, a_label="a", b_label="b"):
+    diff = difflib.unified_diff(
+        a.splitlines(),
+        b.splitlines(),
+        fromfile=a_label,
+        tofile=b_label,
+        lineterm="",  # Ensure no extra line breaks are added
+    )
+
+    return color_diff(diff)
+
+
+def display_error(line_number, label, item):
+    line_number_label = f" [{COLOR_CYAN}L{line_number}{COLOR_RESET}]"
+
+    if line_number is None:
+        line_number_label = ""
+
+    print(
+        f"{COLOR_RED}ERROR{COLOR_RESET} [{COLOR_MAGENTA}{label}{COLOR_RESET}]{line_number_label}: {item}"  # noqa: E501
+    )
+
+    return None
+
+
+def sort_by_str_date(items):
+    return items.sort(key=lambda item: (item[0].isdigit(), item))
+
+
+def sort_by(items, column="date", summary=False):
+    columns_items = {
+        "date": 0,
+        "category": 1,
+        "amount": 2,
+        "method": 3,
+        "notes": 4,
+        "items": 0,  # "items" is invalid for this so fallback to date.
+    }
+
+    columns_summary = {
+        "category": 0,
+        "amount": 1,
+        "items": 2,
+        "date": 0,  # "date" is invalid for this so fallback to category.
+    }
+
+    reverse = False
+    if column.endswith("-"):
+        reverse = True
+        column = column[:-1]
+
+    columns = columns_items
+    if summary:
+        columns = columns_summary
+
+    return sorted(
+        items, key=lambda item: (item[columns[column]], item), reverse=reverse
+    )
+
+
+def validate_sort_column(value):
+    value = value.strip().lower()
+
+    columns = [
+        "date",
+        "date-",
+        "category",
+        "category-",
+        "amount",
+        "amount-",
+        "method",
+        "method-",
+        "notes",
+        "notes-",
+        "items",
+        "items-",
+    ]
+
+    if value not in columns:
+        msg = f"'{value}' must be: {', '.join(columns)}"
+        raise argparse.ArgumentTypeError(msg)
+
+    return value
+
+
+def validate_summary_column(value):
+    value = value.strip().lower()
+
+    if value not in CSV_COLUMN_INDEX:
+        msg = f"'{value}' must be: {CSV_HEADERS}"
+        raise argparse.ArgumentTypeError(msg)
+
+    return value
+
+
+def validate_item_count(value, line, raw_item):
+    if len(value) != 5:
+        display_error(line, "FIELDS_COUNT_MISMATCH", raw_item)
+        # This one always exits early because the others won't work and
+        # will throw exceptions due to malformed items.
+        sys.exit(1)
+
+    return None
+
+
+def validate_whitespace(value, line, raw_item):
+    errors = 0
+
+    if re.match(REGEX_WHITESPACE, str(value)):
+        display_error(line, "WHITESPACE_MISMATCH", raw_item)
+        errors += 1
+
+    return errors
+
+
+def validate_date(value, line, raw_item):
+    errors = 0
+
+    # This will start failing in the year 10000, I'm ok with that.
+    if re.match(REGEX_DATE, value):
+        try:
+            datetime.strptime(value, "%Y-%m-%d")
+        except ValueError:
+            display_error(line, "DATE_MISMATCH", raw_item)
+            errors += 1
+    else:
+        if re.match(REGEX_DATE_TAX_Q, value):
+            pass
+        else:
+            display_error(line, "DATE_MISMATCH", raw_item)
+            errors += 1
+
+    return errors
+
+
+def validate_category(value, raw_value, line, raw_item):
+    errors = 0
+
+    if re.search(REGEX_CATEGORY, value):
+        display_error(line, "CATEGORY_MISMATCH", raw_item)
+        errors += 1
+    else:
+        if raw_value.startswith('"') and raw_value.endswith('"'):
+            pass
+        else:
+            display_error(line, "CATEGORY_MISMATCH", raw_item)
+            errors += 1
+
+    return errors
+
+
+def validate_amount(raw_value, line, raw_item):
+    errors = 0
+
+    if re.match(REGEX_AMOUNT, raw_value):
+        if raw_value.startswith('"') or raw_value.endswith('"'):
+            display_error(line, "AMOUNT_MISMATCH", raw_item)
+            errors += 1
+    else:
+        display_error(line, "AMOUNT_MISMATCH", raw_item)
+        errors += 1
+
+    return errors
+
+
+def validate_method(value, raw_value, line, raw_item):
+    errors = 0
+
+    if re.search(REGEX_METHOD, value):
+        display_error(line, "METHOD_MISMATCH", raw_item)
+        errors += 1
+    else:
+        if raw_value.startswith('"') and raw_value.endswith('"'):
+            pass
+        else:
+            display_error(line, "METHOD_MISMATCH", raw_item)
+            errors += 1
+
+    return errors
+
+
+def validate_notes(value, raw_value, line, raw_item):
+    errors = 0
+
+    if re.search(REGEX_NOTES, value):
+        display_error(line, "NOTES_MISMATCH", raw_item)
+        errors += 1
+    else:
+        if raw_value.startswith('"') and raw_value.endswith('"'):
+            return errors
+        else:
+            if not raw_value:
+                return errors
+
+            display_error(line, "NOTES_MISMATCH", raw_item)
+            errors += 1
+
+    return errors
+
+
+def validate_sort_date(raw_items, raw_items_sorted):
+    errors = 0
+
+    diff = generate_diff(raw_items, raw_items_sorted, "yours", "expected")
+
+    if diff:
+        display_error(None, "SORT_BY_DATE_MISMATCH", "")
+        print(diff)
+        errors += 1
+
+    return errors
+
+
+def validate_unique(raw_items_sorted, raw_items_set, no_errors=False):
+    errors = 0
+
+    diff = generate_diff(raw_items_sorted, raw_items_set, "yours", "expected")
+
+    if diff:
+        display_error(None, "UNIQUENESS_MISMATCH", "")
+        print(diff)
+
+        if not no_errors:
+            errors += 1
+
+    return errors
+
+
+def open_file_in_editor(file):
+    editor = os.getenv("EDITOR")
+
+    if editor is None:
+        print(
+            f"""Your EDITOR environment variable is unset. It's a Unix convention to set it so
+programs know which code editor to open by default.
+
+Temporarily try running:
+
+  EDITOR=vim {SCRIPT_NAME} config --edit
+
+You can persist this in your shell's rc file (bash, zsh, etc.) by adding:
+
+export EDITOR="vim"
+
+Replace "vim" with your editor's command, such as "code", "subl", "nano", etc..
+
+Once you've saved your rc file, open a new terminal session and re-run this:
+
+  {SCRIPT_NAME} config --edit"""  # noqa: E501
+        )
+        sys.exit(1)
+
+    os.system(f"{editor} {file}")
+
+    return None
+
+
+def load_profile_csv(pattern="", sort="date", sort_summary=False):
+    result = {}
+    result["headers"] = []
+    result["items"] = {}
+    result["items"]["raw"] = []
+    result["items"]["parsed"] = []
+    pattern_q = ""
+
+    # Support quarterly filtering syntax.
+    if re.match(REGEX_DATE_TAX_Q, pattern):
+        pattern_parts = pattern.split("-")
+        pattern_year = pattern_parts[0]
+        pattern_q = pattern_parts[1]
+
+        match pattern_q:
+            case "q1":
+                pattern_q = "(01|02|03)"
+            case "q2":
+                pattern_q = "(04|05)"
+            case "q3":
+                pattern_q = "(06|07|08)"
+            case "q4":
+                pattern_q = "(09|10|11|12)"
+
+        pattern = f"{pattern_year}-{pattern_q}"
+
+    # If you're searching for 4 digits or quarters, it's probably a year so
+    # lets clamp it to the start of the line to avoid picking up false
+    # positives such as an amount in a different year that happens to match
+    # the current year (ie. 2025 == 2025.00).
+    #
+    # You can search for `2025\.` to get amounts of 2025.XX.
+    if re.match(r"^\d{4}$", pattern) or pattern_q:
+        pattern = f"^{pattern}"
+
+    with open(PLUTUS_PROFILE) as csvfile:
+        output_1, output_2 = tee(csvfile)
+
+        total_line_count = 0
+
+        # This combined with `tee` lets us iterate over the same file type
+        # but use different processing. The normal csv reader will mangle
+        # our custom quote set up so we have to read it as a file too.
+        for item, raw_item in zip(csv.reader(output_1), output_2):
+            try:
+                # We want to get the headers with no extra parsing.
+                if total_line_count == 0:
+                    result["headers"] = item
+
+                    total_line_count += 1
+                    continue
+
+                total_line_count += 1
+
+                if re.search(pattern, raw_item):
+                    # This needs to be converted to a float here so it can be
+                    # sorted correctly.
+                    item[2] = round(float(item[2]), 2)
+
+                    result["items"]["parsed"].append(item)
+                    result["items"]["raw"].append(raw_item.rstrip())
+
+            except Exception:
+                comma_count = raw_item.count(",")
+
+                display_error(total_line_count, "PARSE_FAILURE", raw_item)
+                print(
+                    f"""Here's a few things to check for the above line:
+
+- There's {comma_count} commas, it's expected exactly 4 exist
+- A field may have an incorrect data type (ie. string instead of a float)
+- The CSV headers are not on the first line
+- Once you address the above for good measure run '{SCRIPT_NAME} lint'
+
+Here's the stack trace:
+                """
+                )
+                print(traceback.format_exc())
+                sys.exit(1)
+
+    if sort is not None:
+        result["items"]["parsed"] = sort_by(
+            result["items"]["parsed"], sort, sort_summary
+        )
+
+    return result
+
+
+def print_csv_table(headers, items, add_columns=True, format_columns=[]):
+    format_amounts = config.getboolean("Settings", "format_amounts")
+    format_negatives = config.getboolean(
+        "Settings", "format_negatives_with_parentheses"
+    )
+
+    # Calculate maximum length for each column (including the headers).
+    column_widths = [len(header) for header in headers]
+
+    matched_line_count = 0
+    amount_total = 0
+    items_total = 0
+
+    # Calculate the max length for each column in the data items.
+    for item in items:
+        # We always want the id column to be added.
+        matched_line_count += 1
+        item.insert(0, matched_line_count)
+
+        # We only want to do this when we're displaying items (not a summary).
+        if add_columns:
+            amount_total += item[3]
+
+            item.insert(4, round(amount_total, 2))
+        else:
+            amount_total += item[2]
+            items_total += item[3]
+
+            item.insert(3, round(amount_total, 2))
+            item.insert(5, items_total)
+
+        for i, value in enumerate(item):
+            if format_columns and format_amounts:
+                for column in format_columns:
+                    if i == column:
+                        is_negative = "-" in str(value)
+
+                        if locale_success:
+                            value = locale.currency(value, grouping=True)
+                        else:
+                            # Fallback to using USD with commas.
+                            value = f"${value:,}"
+
+                            # Shift the negative sign left 1 so we have -$1.00
+                            # instead of $-1.00.
+                            if is_negative:
+                                value = value.replace("-", "")
+                                value = f"-{value}"
+
+                        if format_negatives and is_negative:
+                            value = f"({value.replace('-', '')})"
+
+                        item[i] = value
+            elif not format_amounts:
+                # We still want to turn floats into 2 decimal place strings.
+                for column in format_columns:
+                    if i == column:
+                        value = f"{value:.2f}"
+
+                    item[i] = value
+
+            column_widths[i] = max(column_widths[i], len(str(value)))
+
+    # Print headers with proper padding.
+    outline = "-" * (sum(column_widths) + 3 * (len(headers) - 1))
+    print(outline)
+    print(
+        " | ".join(
+            [
+                header.ljust(column_widths[i])
+                for i, header in enumerate(headers)
+            ]
+        )
+    )
+    print(outline)
+
+    # Print each item with proper padding.
+    for item in items:
+        print(
+            " | ".join(
+                [
+                    str(value).replace('"', "").ljust(column_widths[i])
+                    for i, value in enumerate(item)
+                ]
+            )
+        )
+
+    return None
+
+
+# ----------------------------------------------------------------------------
+# CLI functions
+# ----------------------------------------------------------------------------
+
+
+def cmd_show(args):
+    result = load_profile_csv(
+        args.pattern, sort=args.sort, sort_summary=args.summary
+    )
+
+    headers = result["headers"]
+    items_parsed = result["items"]["parsed"]
+    items_raw = result["items"]["raw"]
+
+    result_raw = []
+
+    # Add new headers to account for dynamically calculated columns.
+    headers.insert(0, " ")
+    headers.insert(4, "Total")
+    result_raw.append(",".join(headers))
+
+    if args.raw:
+        print(CSV_HEADERS)
+
+        for i, item in enumerate(items_parsed, start=1):
+            print(items_raw[i - 1])
+
+        return None
+
+    if args.summary or args.summary_with_items:
+        unique_aggregate_keys = set()
+
+        if args.summary:
+            summary_col = CSV_COLUMN_INDEX[args.summary]
+        else:
+            summary_col = CSV_COLUMN_INDEX[args.summary_with_items]
+
+        summary_header = list(CSV_COLUMN_INDEX.keys())[
+            list(CSV_COLUMN_INDEX.values()).index(summary_col)
+        ].capitalize()
+
+        for _i, item in enumerate(items_parsed):
+            unique_aggregate_keys.add(item[summary_col])
+
+        aggregated_items = {}
+        unique_aggregate_keys = sorted(list(unique_aggregate_keys))
+
+        for key in unique_aggregate_keys:
+            aggregated_items[key] = {}
+            aggregated_items[key]["amount"] = 0
+            aggregated_items[key]["total"] = 0
+            aggregated_items[key]["items"] = 0
+
+        for _i, item in enumerate(items_parsed):
+            if (
+                item[summary_col] in unique_aggregate_keys
+                or items_raw[summary_col] in unique_aggregate_keys
+            ):
+                aggregated_items[item[summary_col]]["amount"] += item[2]
+                aggregated_items[item[summary_col]]["items"] += 1
+
+        id = 0
+        total = 0
+        aggregate_result = []
+
+        for key, value in aggregated_items.items():
+            id += 1
+
+            total += aggregated_items[key]["amount"]
+            amount_ = round(value["amount"], 2)
+
+            aggregate_result.append([key, amount_, value["items"]])
+
+        aggregate_result = sort_by(aggregate_result, args.sort, args.summary)
+
+        summary_headers = [
+            " ",
+            summary_header,
+            "Amount",
+            "Total",
+            "Items",
+            "Total",
+        ]
+        print_csv_table(
+            summary_headers,
+            aggregate_result,
+            add_columns=False,
+            format_columns=[2, 3],
+        )
+
+        if args.summary_with_items:
+            print("\n")
+        else:
+            return None
+
+    print_csv_table(headers, items_parsed, format_columns=[3, 4])
+
+    return None
+
+
+def cmd_edit(args):
+    if not args.sort:
+        open_file_in_editor(PLUTUS_PROFILE)
+
+        return None
+
+    result = load_profile_csv()
+
+    raw_headers = ",".join(result["headers"])
+    raw_items = "\n".join(result["items"]["raw"])
+    raw_items_sorted = "\n".join(sorted(result["items"]["raw"]))
+
+    diff = generate_diff(raw_items_sorted, raw_items, "original", "new")
+
+    if diff:
+        print(f"{PLUTUS_PROFILE} was sorted, here's what changed:\n")
+        print(diff)
+
+        with open(PLUTUS_PROFILE, "w") as file:
+            file.writelines(f"{raw_headers}\n")
+            file.writelines(raw_items_sorted)
+
+    return None
+
+
+def cmd_demo(args):
+    year = "2025"
+    last_year = "2024"
+
+    if not args.no_dynamic_years:
+        # Demos should be up to date but not for our tests!
+        year = datetime.now().year
+        last_year = datetime.now().year - 1
+
+    example_categories = [
+        "Business Expenses:Accountant",
+        "Business Expenses:Affiliates",
+        "Business Expenses:Bank",
+        "Business Expenses:Consulting",
+        "Business Expenses:Dining Out",
+        "Business Expenses:Education",
+        "Business Expenses:Hosting:Domain Names",
+        "Business Expenses:Postage",
+        "Business Expenses:Rent",
+        "Business Expenses:Services",
+        "Business Expenses:Software",
+        "Business Expenses:Supplies",
+        "Business Expenses:Transportation",
+        "Income:Ads",
+        "Income:Affiliates",
+        "Income:Consulting",
+        "Income:Education",
+        "Income:Employment",
+        "Income:Interest",
+        "Income:Merch",
+        "Income:Sponsors:OpenSource",
+        "Personal Expenses:Clothes",
+        "Personal Expenses:Dining Out",
+        "Personal Expenses:Donations",
+        "Personal Expenses:Education",
+        "Personal Expenses:Entertainment:Games",
+        "Personal Expenses:Entertainment:Netflix",
+        "Personal Expenses:Gifts",
+        "Personal Expenses:Groceries",
+        "Personal Expenses:Health",
+        "Personal Expenses:Medical:Prescriptions",
+        "Personal Expenses:Medical:Services",
+        "Personal Expenses:Rent",
+        "Personal Expenses:Supplies",
+        "Personal Expenses:Transportation",
+        "Personal Expenses:Utilities:Cell Phone",
+        "Personal Expenses:Utilities:Internet",
+        "Tax:Deductions",
+        "Tax:Paid",
+        "Tax:Refunds",
+    ]
+
+    if args.categories:
+        print(
+            """
+
+------------------------------------------------------------------------------
+Categories to use as a starting point
+------------------------------------------------------------------------------
+- Used to help filter your items
+- Split categories into subcategories with the colon character
+- Supports as much or as little subcategory nesting as you want
+- Cannot contain these characters: " ' , (ie. Hell'o)
+- Cannot start or end with a colon (ie. :Hello, Hello: or :Hello:)
+- Cannot have 2 or more colons next to each other (ie. Hello::World)
+------------------------------------------------------------------------------
+        """
+        )
+        print("\n".join(example_categories))
+
+    items = [
+        f"{CSV_HEADERS}",
+        f'{last_year}-01-12,"Personal Expenses:Transportation",20.01,"FreedomCard","Gas"',  # noqa: E501
+        f'{last_year}-02-28,"Personal Expenses:Transportation",32.00,"FreedomCard","Train to NYC"',  # noqa: E501
+        f'{last_year}-04-30,"Personal Expenses:Groceries",84.21,"FreedomCard",',  # noqa: E501
+        f'{last_year}-06-09,"Personal Expenses:Dining Out",-10.00,"SapphireCard","Pinneapple Pizza"',  # noqa: E501
+        f'{last_year}-07-17,"Business Expenses:Rent",-1600.00,"Cash",',
+        f'{last_year}-08-24,"Business Expenses:Dining Out",-56.02,"SapphireCard","Meeting with King Midas"',  # noqa: E501
+        f'{last_year}-09-15,"Income:Sponsors:OpenSource",0.01,"Venmo","Zero Cool"',  # noqa: E501
+        f'{last_year}-11-30,"Income:Affiliates:DigitalOcean",25.00,"ACH",',
+        f'{year}-02-05,"Personal Expenses:Entertainment:Games",5.03,"FreedomCard","Hollow Knight"',  # noqa: E501
+        f'{year}-03-17,"Personal Expenses:Groceries",14.14,"FreedomCard",',
+        f'{year}-04-30,"Personal Expenses:Groceries",84.21,"FreedomCard",',
+        f'{year}-05-02,"Tax:Refunds",1614.00,"ACH","Federal"',
+        f'{year}-05-04,"Tax:Refunds",236.00,"ACH","NY State"',
+        f'{year}-05-19,"Personal Expenses:Entertainment:Netflix",16.83,"FreedomCard",',  # noqa: E501
+        f'{year}-06-05,"Income:Merch",360.28,"Zelle","Programming stickers"',
+        f'{year}-07-06,"Income:Consulting",300.00,"Zelle","Johnny Tables (Flask)"',  # noqa: E501
+        f'{year}-07-14,"Personal Expenses:Entertainment:Games",10.17,"FreedomCard","Ori and the Blind Forest"',  # noqa: E501
+        f'{year}-07-16,"Income:Consulting",600.00,"ACH","Acme Inc (Docker deployment)"',  # noqa: E501
+        f'{year}-08-01,"Business Expenses:Affiliates",-17.70,"Zelle","William Thatcher"',  # noqa: E501
+        f'{year}-08-01,"Business Expenses:Hosting:DigitalOcean",-12.00,"FreedomCard",',  # noqa: E501
+        f'{year}-08-18,"Business Expenses:Rent",-3200.00,"Cash","2 months"',
+        f'{year}-09-01,"Business Expenses:Affiliates",-24.90,"Zelle","William Thatcher"',  # noqa: E501
+        f'{year}-09-01,"Business Expenses:Hosting:DigitalOcean",-12.00,"FreedomCard",',  # noqa: E501
+        f'{year}-09-03,"Business Expenses:Hosting:Domain Names",-10.95,"PayPal","nickjanetakis.com"',  # noqa: E501
+        f'{year}-10-11,"Income:Consulting",1500.00,"PayPal","Alice (Docker)"',
+        f'{year}-10-17,"Income:Consulting",600.00,"Zelle","Johnny Tables (Flask)"',  # noqa: E501
+        f'{year}-10-30,"Income:Affiliates:Amazon",123.45,"ACH",',
+        f'{year}-11-30,"Income:Affiliates:Amazon",345.67,"ACH",',
+        f'{year}-11-30,"Income:Affiliates:DigitalOcean",25.00,"ACH",',
+        f'{year}-11-30,"Income:Affiliates:DigitalOcean",50.00,"ACH",',
+        f'{year}-12-30,"Income:Affiliates:Amazon",234.56,"ACH",',
+    ]
+
+    sort_by_str_date(items)
+
+    if args.items:
+        print(
+            f"""
+
+------------------------------------------------------------------------------
+Items are shown in their raw format here to see how they are structured
+------------------------------------------------------------------------------
+- Used to record your transaction details
+- Must be sorted by date with the newest items on the bottom
+  - You will be able to sort on any column when viewing these items
+- All fields except the date and amount should be quoted for consistency
+  - The only exception is if you have no notes, you can leave a trailing comma
+- All expenses should have negative numbers
+  - A config option lets you display them as (10.00) instead of -10.00
+- All fields cannot contain a comma (,)
+- All fields cannot contain a colon (:) except categories
+- All fields cannot contain line break characters except at the end of the line
+- Date
+  - Formatted as YYYY-MM-DD
+  - Formatted as YYYY-q(1|2|3|4) for easier tax quarter filtering
+  - Cannot be wrapped in double quotes
+- Category
+  - Must be wraped in double quotes
+- Amount
+  - Formatted as a positive or negative float to 2 decimal places
+  - Cannot be wrapped in double quotes
+  - Cannot contain currency formatting characters such as a comma
+    - There are formatting options to display them with currency symbols
+- Method
+  - Used to help track how a transaction occurred
+  - Must be wrapped in double quotes
+- Notes
+  - Must be wrapped in double quotes if you have a note
+
+'{SCRIPT_NAME} lint' will help identify any formatting issues!
+------------------------------------------------------------------------------
+        """
+        )
+
+        print("\n".join(items))
+
+        print(
+            f"\nPretty print items with '{SCRIPT_NAME} show' and check --help for filtering / sorting options"  # noqa: E501
+        )
+
+    if args.init:
+        with open(DEMO_PROFILE, "w") as file:
+            file.write("\n".join(items))
+            file.write("\n")
+
+            print(
+                f"""
+------------------------------------------------------------------------------
+Temporarily use the demo profile
+------------------------------------------------------------------------------
+
+Run this in your terminal to use the demo profile:
+
+export PLUTUS_PROFILE="{DEMO_PROFILE}"
+
+Now every {SCRIPT_NAME} command you run in this terminal session will use the
+demo profile instead of your configured profile. If you open a new terminal
+session (window, tab, split pane, etc.) you will need to set it again.
+
+Run this in your terminal to stop using the demo profile:
+
+unset PLUTUS_PROFILE && rm {DEMO_PROFILE}
+
+Now every {SCRIPT_NAME} command you run will use your configured profile."""
+            )
+
+            print(
+                f"""
+
+------------------------------------------------------------------------------
+Quickly reference example categories and items
+------------------------------------------------------------------------------
+
+You can run '{SCRIPT_NAME} demo --categories --items' at any time within any
+any profile to get a list of categories to use as inspiration as well as items
+to see how they are formatted. The above command doesn't write anything to disk."""  # noqa: E501
+            )
+
+    return None
+
+
+def cmd_lint(args):
+    lint_rules = f"""
+- CSV headers match {CSV_HEADERS}
+- Items have exactly 4 commas (5 fields)
+- Item fields have no leading or trailing whitespace
+- Item fields cannot be empty except for notes
+- Dates match {REGEX_DATE}, can be parsed into a date and are not quoted
+  - {REGEX_DATE_TAX_Q} is also accepted for easy quarterly tax filtering
+- Categories match {REGEX_CATEGORY} and are quoted
+- Amounts match {REGEX_AMOUNT} and are not quoted
+- Methods match {REGEX_METHOD} and are quoted
+- Notes match {REGEX_NOTES} and are quoted if they exist
+- Items are sorted by date
+- Items are unique
+  - Set --no-unique-errors to not exit 1 if there are duplicates"""
+
+    if args.rules:
+        print("Your profile is checked with the following rules:")
+        print(lint_rules)
+
+        return None
+
+    # We need to disable sorting to get accurate line references.
+    result = load_profile_csv("", sort=None)
+
+    headers = result["headers"]
+    headers_raw = ",".join(headers)
+
+    items_raw = result["items"]["raw"]
+    items_parsed = result["items"]["parsed"]
+
+    error_count = 0
+
+    if headers_raw != CSV_HEADERS:
+        display_error(1, "CSV_HEADERS_MISMATCH", "")
+        print(generate_diff(headers_raw, CSV_HEADERS, "yours", "expected"))
+        error_count += 1
+
+    for i, item in enumerate(items_parsed, start=1):
+        # The raw item list has headers, so ignore that count.
+        raw_item = items_raw[i - 1]
+        raw_item_parts = raw_item.split(",")
+
+        raw_category = raw_item_parts[1]
+        raw_amount = raw_item_parts[2]
+        raw_method = raw_item_parts[3]
+        raw_notes = raw_item_parts[4]
+
+        validate_item_count(item, i, raw_item)
+
+        # Let us never speak of this one.
+        i_ = i + 1
+
+        for col in item:
+            # Notes are the only thing that can be empty.
+            # Hi, my name is Nick and I write code for a living. :D
+            if (
+                item[0] != ""
+                and item[1] != ""
+                and item[2] != ""
+                and item[3] != ""
+            ) and item[
+                4
+            ] == "":  # noqa: E501
+                continue
+
+            error_count += validate_whitespace(col, i_, raw_item)
+
+        error_count += validate_date(item[0], i_, raw_item)
+        error_count += validate_category(item[1], raw_category, i_, raw_item)
+        error_count += validate_amount(raw_amount, i_, raw_item)
+        error_count += validate_method(item[3], raw_method, i_, raw_item)
+        error_count += validate_notes(item[4], raw_notes, i_, raw_item)
+
+    items_raw_str = "\n".join(items_raw)
+    items_raw_str_sorted = "\n".join(sorted(items_raw))
+    items_raw_str_set = "\n".join(sorted(set(items_raw)))
+
+    error_count += validate_sort_date(items_raw_str, items_raw_str_sorted)
+    error_count += validate_unique(
+        items_raw_str_sorted, items_raw_str_set, args.no_unique_errors
+    )
+
+    if error_count > 0:
+        error_label = "errors"
+
+        if error_count == 1:
+            # Strip off the plural "s".
+            error_label = error_label[:-1]
+
+        print(
+            f"\n{error_count} linting {error_label} occurred, here's all of the rules to check into:"  # noqa: E501
+        )
+        print(lint_rules)
+
+    if error_count > 0 and not args.no_errors:
+        sys.exit(1)
+
+    return None
+
+
+def cmd_config(args):
+    if args.edit:
+        open_file_in_editor(SCRIPT_CONFIG)
+    else:
+        with open(SCRIPT_CONFIG) as file:
+            print(file.read().rstrip("\n"))
+
+    return None
+
+
+# ----------------------------------------------------------------------------
+# Initial profile creation and initialization
+# ----------------------------------------------------------------------------
+while not os.path.isfile(SCRIPT_CONFIG):
+    welcome = f"""Welcome to {SCRIPT_NAME}!
+
+The first step is supplying a new profile, this file will contain all of your
+categorized transactions. It's a "profile" because you can have more than 1
+of them. They can exist anywhere too!
+
+TIP: Unless you have a very strong reason to do so, consider sticking with 1
+profile and use categories to split things out. More details on this later.
+
+By default all {SCRIPT_NAME} commands will use this profile.
+"""
+
+    print(welcome)
+    path = input(
+        f"Enter default profile path or skip to use the shown path ({DEFAULT_PROFILE}): "  # noqa: E501
+    )
+
+    if not path:
+        path = DEFAULT_PROFILE
+
+    os.makedirs(SCRIPT_DIR, exist_ok=True)
+    config["Settings"] = {
+        "default_profile": path,
+        "format_amounts": True,
+        "format_negatives_with_parentheses": False,
+    }
+    with open(SCRIPT_CONFIG, "w") as file:
+        config.write(file)
+
+    if os.path.exists(path):
+        print(f"\n{path} already exists, skipping!\n")
+        continue
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as file:
+        file.write(f"{CSV_HEADERS}")
+
+    success = f"""
+---
+
+Everything was set up successfully.
+
+Files of interest
+  - Config file: {SCRIPT_CONFIG} (you can manually update this file at any time)
+  - Configured default profile path: {path}
+
+Getting started
+  - Import from any supported tools (GnuCash) if applicable
+  - Alternatively, run '{SCRIPT_NAME} demo --init' to create a temp profile with demo data
+    - This will write demo data to disk to '{DEMO_PROFILE}'
+    - Rather than try to explain everything, seeing the format may be intuitive
+    - It gives you a chance to play with the tool without investing a lot of time
+
+Example commands
+  - Run '{SCRIPT_NAME} help' to see examples of which commands you can run
+
+If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}"""  # noqa: E501
+
+    print(success)
+    sys.exit()
+
+config.read(SCRIPT_CONFIG)
+
+PLUTUS_PROFILE = os.getenv(
+    "PLUTUS_PROFILE", config.get("Settings", "default_profile")
+)
+
+
+def cmd_version():
+    return print(SCRIPT_VERSION)
+
+
+# ----------------------------------------------------------------------------
+# CLI arguments
+# ----------------------------------------------------------------------------
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(
+        f"""\
+    Plutus is a tool to help track your income and expenses.
+
+
+    Please report issues or feedback at https://github.com/nickjj/{SCRIPT_NAME}
+    """
+    ),
+)
+
+subparsers = parser.add_subparsers(help="subcommand help", dest="command")
+
+parser_show = subparsers.add_parser("show", help="view your transactions")
+parser_edit = subparsers.add_parser("edit", help="edit your transactions")
+parser_demo = subparsers.add_parser("demo", help="generate sample data")
+parser_lint = subparsers.add_parser("lint", help="identify formatting issues")
+parser_config = subparsers.add_parser("config", help="view / edit your config")
+parser_version = subparsers.add_parser("version", help="show the version")
+
+# This is an optional parameter, nargs says it can be omit or defined once.
+parser_show.add_argument(
+    "pattern",
+    nargs="?",
+    metavar="PATTERN",
+    default="",
+    help="optionally filter results by a regex pattern",
+)
+
+parser_show.add_argument(
+    "-s",
+    "--sort",
+    type=validate_sort_column,
+    metavar="FIELD",
+    default="Date",
+    help="bidirectionally sort results by a specific field",
+)
+
+parser_show.add_argument(
+    "-m",
+    "--summary",
+    nargs="?",
+    const="category",
+    type=validate_summary_column,
+    metavar="COLUMN",
+    help="aggregate amount totals and item counts for a specific column type",
+)
+
+parser_show.add_argument(
+    "-w",
+    "--summary-with-items",
+    nargs="?",
+    const="category",
+    type=validate_summary_column,
+    metavar="COLUMN",
+    help="view both a summary of column types and items",
+)
+
+parser_show.add_argument(
+    "-r",
+    "--raw",
+    default=False,
+    action="store_true",
+    help="view your profile's lines without any processing except filtering",
+)
+
+parser_edit.add_argument(
+    "-s",
+    "--sort",
+    default=False,
+    action="store_true",
+    help="sort your profile and show a diff if anything changed",
+)
+
+parser_demo.add_argument(
+    "-n",
+    "--init",
+    default=False,
+    action="store_true",
+    help="write a demo profile to disk",
+)
+
+parser_demo.add_argument(
+    "-c",
+    "--categories",
+    default=False,
+    action="store_true",
+    help="view example categories to use as a starting point",
+)
+
+parser_demo.add_argument(
+    "-i",
+    "--items",
+    default=False,
+    action="store_true",
+    help="view example items to see how they are structured",
+)
+
+# This is a hidden option to make determinstic demos (useful for testing).
+parser_demo.add_argument(
+    "-D",
+    "--no-dynamic-years",
+    default=False,
+    action="store_true",
+    help=argparse.SUPPRESS,
+)
+
+parser_lint.add_argument(
+    "-r",
+    "--rules",
+    default=False,
+    action="store_true",
+    help="view the rules used to validate your profile",
+)
+
+parser_lint.add_argument(
+    "-E",
+    "--no-errors",
+    default=False,
+    action="store_true",
+    help="don't exit with status code 1 (could be useful in CI)",
+)
+
+parser_lint.add_argument(
+    "-U",
+    "--no-unique-errors",
+    default=False,
+    action="store_true",
+    help="don't exit with status code 1 if items are duplicated",
+)
+
+parser_lint.add_argument(
+    "-a",
+    "--unique-amounts-date",
+    default=False,
+    action="store_true",
+    help="check only the date + amount for uniqueness instead of all fields",
+)
+
+parser_config.add_argument(
+    "-e",
+    "--edit",
+    default=False,
+    action="store_true",
+    help="edit your config file",
+)
+
+
+args = parser.parse_args()
+
+if not args.command == "demo" and not os.path.exists(PLUTUS_PROFILE):
+    display_error(None, "MISSING_PROFILE", PLUTUS_PROFILE)
+    sys.exit(1)
+
+match args.command:
+    case "show":
+        cmd_show(args)
+    case "edit":
+        cmd_edit(args)
+    case "demo":
+        cmd_demo(args)
+    case "lint":
+        cmd_lint(args)
+    case "config":
+        cmd_config(args)
+    case "version":
+        cmd_version()
+    case None:
+        os.system(f"{sys.argv[0]} --help")

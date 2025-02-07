@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+
+function lint {
+  # Lint Python code
+  flake8 src/plutus src/importers/import-* tests/* "${@}"
+}
+
+function format:imports {
+  # Sort Python imports
+  isort . "${@}"
+}
+
+function format {
+  # Format Python code
+  black src/plutus . "${@}"
+}
+
+function quality {
+  # Perform all code quality commands together
+  format:imports
+  format
+  lint
+}
+
+function test {
+  # Run test suite
+  python3 -m unittest discover --start-directory tests/src "${@}"
+}
+
+function ci:install-deps {
+  pip3 install black flake8 isort
+}
+
+function ci:test {
+  lint "${@}"
+  format:imports --check
+  format --check
+  test "${@}"
+}
+
+function help {
+  printf "%s <task> [args]\n\nTasks:\n" "${0}"
+
+  compgen -A function | grep -v "^_" | cat -n
+
+  printf "\nExtended help:\n  Each task has comments for general usage\n"
+}
+
+# This idea is heavily inspired by: https://github.com/adriancooney/Taskfile
+TIMEFORMAT=$'\nTask completed in %3lR'
+time "${@:-help}"

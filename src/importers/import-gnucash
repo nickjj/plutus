@@ -1,0 +1,348 @@
+#!/usr/bin/env python3
+
+import argparse
+import csv
+import os
+import re
+import sys
+import textwrap
+import traceback
+from datetime import datetime
+
+PLUTUS_HEADERS = "Date,Category,Amount,Method,Notes"
+GNUCASH_HEADERS = '"Date","Account Name","Number","Description","Full Category Path","Reconcile","Amount With Sym","Amount Num.","Rate/Price"'  # noqa: E501
+
+
+def validate_input(value):
+    value = value.strip()
+
+    if os.path.exists(value):
+        with open(value) as file:
+            line = file.readline().strip("\n")
+
+            if line != GNUCASH_HEADERS:
+                msg = f"'{value}' doesn't appear to be a GnuCash CSV export"
+                raise argparse.ArgumentTypeError(msg)
+
+        return value
+    else:
+        msg = f"'{value}' GnuCash import file does not exist"
+        raise argparse.ArgumentTypeError(msg)
+
+
+def validate_category(value):
+    value = value.strip()
+
+    if re.search(r":{2,}", value):
+        msg = f"'{value}' cannot contain 2+ colons in a row"
+        raise argparse.ArgumentTypeError(msg)
+    elif re.search(r"(^:|:$)", value):
+        msg = f"'{value}' cannot start or end with a colon"
+        raise argparse.ArgumentTypeError(msg)
+    elif re.search(r"(,|'|\"|\\n)", value):
+        msg = f"'{value}' cannot have commas, single or double quotes"
+        raise argparse.ArgumentTypeError(msg)
+
+    return value
+
+
+def validate_payment_method(value):
+    value = value.strip()
+
+    if re.search(r"(,|:|'|\"|\\n)", value):
+        msg = f"'{value}' cannot have commas, colons, single or double quotes"
+        raise argparse.ArgumentTypeError(msg)
+
+    return value
+
+
+def validate_notes(value):
+    value = value.strip()
+
+    if re.search(r"(,|:|\"|\\n)", value):
+        msg = f"'{value}' cannot have commas, colons or double quotes"
+        raise argparse.ArgumentTypeError(msg)
+
+    return value
+
+
+def validate_item(value):
+    item_count = len(value)
+
+    if item_count != 9:
+        print(f"ERROR: EXPECTED_9_FIELDS but got {item_count} in {value}")
+        sys.exit(1)
+
+    return None
+
+
+def analyze_account(args):
+    with open(args.input) as csvfile:
+        reader = csv.reader(csvfile)
+
+        matched_lines = []
+        line_count = 0
+        amount_total = 0
+
+        # Skip the headers.
+        next(reader)
+
+        for item in reader:
+            if item[1] == args.gnucash_account:
+                try:
+                    line_count += 1
+                    date = datetime.strptime(
+                        item[0].split()[1], "%m/%d/%Y"
+                    ).strftime("%Y-%m-%d")
+
+                    if args.plutus_category is None:
+                        category = f'"{args.gnucash_account}"'
+                    else:
+                        category = f'"{args.plutus_category}"'
+
+                    # Extract the amount and normalize currency formatting.
+                    amount = re.sub(r"[^0-9.()]", "", item[7])
+
+                    # This is flipped due to the order of GnuCash's items in
+                    # the file since it's double entry bookkeeping.
+                    if amount[0] == "(":
+                        amount = float(amount[1:-1])
+                    else:
+                        amount = -float(amount)
+
+                    method = f'"{args.payment_method}"'
+
+                    # Handle descriptions with commas and extra whitespace.
+                    if args.notes is None:
+                        notes = (
+                            item[3]
+                            .replace("\n", "")
+                            .replace('"', "")
+                            .replace(",", ";")
+                            .replace(":", ";")
+                        )
+                        notes = f'"{notes}"'.strip()
+                    else:
+                        notes = args.notes
+                        if notes != "":
+                            notes = f'"{notes}"'
+
+                    line = f"{date},{category},{amount:.2f},{method},{notes}"
+                    matched_lines.append(f"{line}\n")
+
+                    print(line)
+
+                    if not args.skip_debug:
+                        amount_total += amount
+                        print(
+                            f"DEBUG ({line_count} - ${amount_total:.2f}): {item}\n"  # noqa: E501
+                        )
+                except Exception:
+                    validate_item(item)
+
+                    print(f"ERROR: {line}")
+                    print(traceback.format_exc())
+                    sys.exit(1)
+
+            else:
+                # Added protection against malformed GnuCash lines.
+                validate_item(item)
+
+        if args.output:
+            save_lines = []
+            write_type = "written"
+
+            # There's nothing new to do, so let's bail early.
+            if not matched_lines:
+                print(
+                    f"WARNING: 0 items were found in '{args.gnucash_account}'"
+                )
+                sys.exit()
+
+            if os.path.exists(args.output):
+                write_type = "appended"
+
+                original_lines = []
+                line_count = 0
+                with open(args.output) as file:
+                    original_lines = file.readlines()
+                    original_lines.pop(0)
+
+                # We don't want to add duplicates.
+                for line in matched_lines:
+                    if line in original_lines:
+                        continue
+                    else:
+                        line_count += 1
+                        save_lines.append(line)
+
+                save_lines += original_lines
+            else:
+                # We aren't appending anything so let's use the matched lines.
+                save_lines = matched_lines
+
+                # Let's be nice and create parent directories, this is useful
+                # when someone hasn't used plutus yet.
+                dir_path = os.path.dirname(args.output)
+                if dir_path:
+                    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+
+                print(
+                    """When you run plutus for the first time it will ask you to create a
+profile which is the file used by this tool to save and read transactions.
+
+You will want to choose this output path as that profile or if you plan to
+move this file later, move it into your configured profile path."""  # noqa: E501
+                )
+
+            # Sort things so the CSV header is first (letters before digits).
+            save_lines.sort(key=lambda item: (item[0].isdigit(), item))
+
+            with open(args.output, "w") as file:
+                save_lines.insert(0, f"{PLUTUS_HEADERS}\n")
+                file.writelines(save_lines)
+
+            print(
+                f"\nOK: {line_count} items were {write_type} to {args.output}"
+            )
+
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(
+        """\
+    Import GnuCash transactions into plutus.
+
+    export:
+      1. Export your transactions to CSV in GnuCash
+      2. Enable "Use Quotes" and "Simple Layout" in the export settings
+      3. Select all of your accounts for all times (adjust as necessary)
+      4. Save your exported CSV file somewhere, you will supply it as --input
+
+    examples:
+      # Import a specific GnuCash account and change the plutus category to
+      # something different (Consulting to Freelancing)
+      import-gnucash \\
+        --gnucash-account "Income:Consulting" \\
+        --plutus-category "Income:Freelancing" \\
+        --payment-method ACH \\
+        --input /tmp/gnucash.csv
+
+      # Keep the plutus category the same as GnuCash by ommitting --plutus-category
+      import-gnucash \\
+        --gnucash-account "Income:Consulting" \\
+        --payment-method ACH \\
+        --input /tmp/gnucash.csv
+
+      # If your GnuCash account has any regex chars you need to escape them
+      import-gnucash \\
+        --gnucash-account "Income:Sponsors \\(GitHub\\)" \\
+        --payment-method ACH \\
+        --input /tmp/gnucash.csv
+
+      # Override GnuCash's description with custom notes for each item, you
+      # can use "" to set an empty note if you prefer not having notes
+      import-gnucash \\
+        --gnucash-account "Personal Expenses:Groceries" \\
+        --payment-method FreedomCard \\
+        --notes "Hello world" \\
+        --input /tmp/gnucash.csv
+
+      # Turn off debug output (useful to see what will be output to disk)
+      import-gnucash \\
+        --gnucash-account "Business Expenses:Rent" \\
+        --payment-method Zelle \\
+        --input /tmp/gnucash.csv \\
+        --skip-debug
+
+      # Write the results to your plutus profile, it will either create a new
+      # profile if it doesn't exist or append to it in an idempotent way
+      import-gnucash \\
+        --gnucash-account "Personal Expenses:Dining Out" \\
+        --payment-method SapphireCard \\
+        --input /tmp/gnucash.csv \\
+        --output ~/business/plutus.csv
+
+    tips:
+      - Skip supplying an --output path to do a dry run to confirm your data
+        - The DEBUG output is there to help you quickly validate your data
+        - Keep GnuCash open and view your accounts to confirm the totals
+      - If you have a lot of accounts, breathe, it's only something to do once!
+        - I imported 9 years of data in ~60 accounts, everything lined up without adjustments
+        - It took around 30 minutes doing each account 1 by 1
+        - I refactored my category names as I went too
+      - Don't worry about perfection, it's easy to change category names later
+        - Also for the payment method, you might not know it offhand, that's ok
+          - I put "UnknownMethod" for those, you can backfill them later
+            - I chose that string so I can grep it without false positives
+
+    issues:
+      Please report issues and feedback at https://github/nickjj/plutus
+
+    ---
+    """  # noqa:E501
+    ),
+)
+
+
+parser.add_argument(
+    "-g",
+    "--gnucash-account",
+    required=True,
+    type=validate_category,
+    metavar="ACCOUNT_PATH",
+    help="GnuCash account path (ie. Business Expenses:Software, Personal Expenses:Supplies)",  # noqa:E501
+)
+
+parser.add_argument(
+    "-f",
+    "--plutus-category",
+    type=validate_category,
+    metavar="CATEGORY",
+    help="optionally override the GnuCash account path, defaults to --gnucash-account",  # noqa:E501
+)
+
+parser.add_argument(
+    "-p",
+    "--payment-method",
+    required=True,
+    type=validate_payment_method,
+    metavar="PAYMENT_METHOD",
+    help="ie. ACH, FreedomCard, Zelle, PayPal, Cash, Check, etc.",
+)
+
+parser.add_argument(
+    "-i",
+    "--input",
+    type=validate_input,
+    metavar="PATH",
+    help="GnuCash CSV export file",
+)
+
+parser.add_argument(
+    "-n",
+    "--notes",
+    type=validate_notes,
+    metavar="CONTENT",
+    help="optionally override GnuCash's description field",
+)
+
+parser.add_argument(
+    "-o",
+    "--output",
+    type=str,
+    metavar="PATH",
+    help="save the results to the plutus profile",
+)
+
+parser.add_argument(
+    "-D",
+    "--skip-debug",
+    default=False,
+    action="store_true",
+    help="skip outputting additional information for validation",
+)
+
+args = parser.parse_args()
+
+analyze_account(args)
