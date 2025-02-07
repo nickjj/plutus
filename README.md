@@ -258,6 +258,9 @@ There's a few more options and commands but that's the core of it.
       - `plutus show --summary date`
     - "Show me all of my categories so I can quickly spot off by 1 character typos"
       - `plutus show --summary` (it's grouped by category by default)
+    - "Show me all income and business expenses for 2025"
+      - `plutus show "^2025-.*(Income|Business Expenses):" --summary-with-items`
+        - This filter pattern is dependent on your category names
 - Bidirectionally sort items by date (default), category, amount and more
   - Items are always sorted by date on disk in the CSV file, sorting is done in memory for displaying
 - It is reasonably fast, it outputs a sorted summary for 12,000 items in ~100ms
@@ -382,6 +385,35 @@ options:
   -h, --help  show this help message and exit
   -e, --edit  edit your config file
 ```
+
+### Filtering tips
+
+Filters are regular expressions. They help you narrow down your data on
+whatever criteria you're interested in. The regex is ran across the entire item
+so you can match on multiple fields at once.
+
+Here's a breakdown of some of the commands referenced earlier:
+
+- `plutus show 2025`
+  - Filter results for 2025 but under the hood Plutus will look for any regex that matches 4 digits and automatically anchor it to the start of the line with `^2025` in the regex to avoid false positives
+  - Similarly `2025-q1` will get the tax year's quarter with the same `^` auto-anchoring
+- `plutus show "Business Expenses:"`
+  - Filter results by a category name, using `:` at the end helps avoid false positive matches since `:` can only exist in category names
+- `plutus show "^2025-.*(Income|Business Expenses):"`
+  - This combines both of the above examples into 1 filter
+    - `^` ensures the date only matches the start of the line
+    - `2025-` is anything in the year 2025, we include `-` to be even more precise
+    - `.*` matches any number of any characters
+    - `(Income|Business Expenses)` is an OR match for either category name
+    - `:` helps reduce false positives by only including category name matches
+
+You can optionally add `--summary` to get aggregate stats for all items that
+are returned and `--summary [date|category|amount|method|notes]` to group items
+by that column.
+
+There's also `--summary-with-items` which returns both a summary and your
+item's details. You should see your total at the bottom of both outputs be the
+same.
 
 ### Environment variables
 
