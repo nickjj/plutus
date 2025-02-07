@@ -5,17 +5,17 @@ set -o pipefail
 
 function lint {
   # Lint Python code
-  flake8 src/plutus src/importers/import-* tests/* "${@}"
+  flake8 src/plutus src/importers/import-* tests/ "${@}"
 }
 
 function format:imports {
   # Sort Python imports
-  isort . "${@}"
+  isort src/plutus src/importers/import-* tests/ "${@}"
 }
 
 function format {
   # Format Python code
-  black src/plutus . "${@}"
+  black src/plutus src/importers/import-* tests/ "${@}"
 }
 
 function quality {
