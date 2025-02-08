@@ -4,6 +4,12 @@ import unittest
 from subprocess import PIPE
 from subprocess import Popen
 
+try:
+    locale.setlocale(locale.LC_ALL, "")
+    locale_success = True
+except locale.Error:
+    locale_success = False
+
 TEST_CONFIG = "/tmp/plutus.ini"
 TEST_PROFILE = "/tmp/plutus.csv"
 
@@ -626,11 +632,12 @@ format_negatives_with_parentheses = False
 
         self.assertEqual(len(lines), 35)
 
-        if locale.getlocale() == (None, None):
-            self.assertIn("-$440.23", lines[-1])
-        else:
-            self.assertNotIn("-$440.23", lines[-1])
+        if locale_success:
             self.assertIn("-£440.23", lines[-1])
+            self.assertNotIn("-$440.23", lines[-1])
+        else:
+            self.assertIn("-$440.23", lines[-1])
+            self.assertNotIn("-£440.23", lines[-1])
 
     def test_show_format_amounts_gr(self):
         os.environ["LC_ALL"] = "el_GR.utf8"
@@ -641,11 +648,12 @@ format_negatives_with_parentheses = False
 
         self.assertEqual(len(lines), 35)
 
-        if locale.getlocale() == (None, None):
-            self.assertIn("-$440.23", lines[-1])
-        else:
-            self.assertNotIn("-$440.23", lines[-1])
+        if locale_success:
             self.assertIn("-440,23€", lines[-1])
+            self.assertNotIn("-$440.23", lines[-1])
+        else:
+            self.assertIn("-$440.23", lines[-1])
+            self.assertNotIn("-440,23€", lines[-1])
 
     def test_show_format_negatives_with_parentheses(self):
         stdout, _stderr, _rc = replace_config_line(

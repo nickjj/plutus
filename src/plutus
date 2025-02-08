@@ -14,9 +14,6 @@ from datetime import datetime
 from itertools import tee
 
 try:
-    print("TEMPORARY: Check what the locale is in GitHub Actions")
-    print(locale.getlocale())
-    print("TEMPORARY: Check what the locale is in GitHub Actions")
     locale.setlocale(locale.LC_ALL, "")
     locale_success = True
 except locale.Error:
