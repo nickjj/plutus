@@ -20,7 +20,6 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Switch diff labels to be more human friendly for `plutus edit --sort`
 
-
 ## [0.1.0] - 2025-02-07
 
 ### Added
