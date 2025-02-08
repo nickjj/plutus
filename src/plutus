@@ -1043,23 +1043,24 @@ Categories to use as a starting point
 
     items = [
         f"{CSV_HEADERS}",
-        f'{last_year}-01-12,"Personal Expenses:Transportation",20.01,"FreedomCard","Gas"',  # noqa: E501
-        f'{last_year}-02-28,"Personal Expenses:Transportation",32.00,"FreedomCard","Train to NYC"',  # noqa: E501
-        f'{last_year}-04-30,"Personal Expenses:Groceries",84.21,"FreedomCard",',  # noqa: E501
+        f'{last_year}-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"',  # noqa: E501
+        f'{last_year}-02-28,"Personal Expenses:Transportation",-32.00,"FreedomCard","Train to NYC"',  # noqa: E501
+        f'{last_year}-04-30,"Personal Expenses:Groceries",-84.21,"FreedomCard",',  # noqa: E501
         f'{last_year}-06-09,"Personal Expenses:Dining Out",-10.00,"SapphireCard","Pinneapple Pizza"',  # noqa: E501
         f'{last_year}-07-17,"Business Expenses:Rent",-1600.00,"Cash",',
         f'{last_year}-08-24,"Business Expenses:Dining Out",-56.02,"SapphireCard","Meeting with King Midas"',  # noqa: E501
         f'{last_year}-09-15,"Income:Sponsors:OpenSource",0.01,"Venmo","Zero Cool"',  # noqa: E501
         f'{last_year}-11-30,"Income:Affiliates:DigitalOcean",25.00,"ACH",',
-        f'{year}-02-05,"Personal Expenses:Entertainment:Games",5.03,"FreedomCard","Hollow Knight"',  # noqa: E501
-        f'{year}-03-17,"Personal Expenses:Groceries",14.14,"FreedomCard",',
-        f'{year}-04-30,"Personal Expenses:Groceries",84.21,"FreedomCard",',
+        f'{year}-02-05,"Personal Expenses:Entertainment:Games",-5.03,"FreedomCard","Hollow Knight"',  # noqa: E501
+        f'{year}-02-28,"Personal Expenses:Transportation",-1244.03,"FreedomCard","Plane trip to Antartica"',  # noqa: E501
+        f'{year}-03-17,"Personal Expenses:Groceries",-14.14,"FreedomCard",',
+        f'{year}-04-30,"Personal Expenses:Groceries",-84.21,"FreedomCard",',
         f'{year}-05-02,"Tax:Refunds",1614.00,"ACH","Federal"',
         f'{year}-05-04,"Tax:Refunds",236.00,"ACH","NY State"',
-        f'{year}-05-19,"Personal Expenses:Entertainment:Netflix",16.83,"FreedomCard",',  # noqa: E501
+        f'{year}-05-19,"Personal Expenses:Entertainment:Netflix",-16.83,"FreedomCard",',  # noqa: E501
         f'{year}-06-05,"Income:Merch",360.28,"Zelle","Programming stickers"',
         f'{year}-07-06,"Income:Consulting",300.00,"Zelle","Johnny Tables (Flask)"',  # noqa: E501
-        f'{year}-07-14,"Personal Expenses:Entertainment:Games",10.17,"FreedomCard","Ori and the Blind Forest"',  # noqa: E501
+        f'{year}-07-14,"Personal Expenses:Entertainment:Games",-10.17,"FreedomCard","Ori and the Blind Forest"',  # noqa: E501
         f'{year}-07-16,"Income:Consulting",600.00,"ACH","Acme Inc (Docker deployment)"',  # noqa: E501
         f'{year}-08-01,"Business Expenses:Affiliates",-17.70,"Zelle","William Thatcher"',  # noqa: E501
         f'{year}-08-01,"Business Expenses:Hosting:DigitalOcean",-12.00,"FreedomCard",',  # noqa: E501

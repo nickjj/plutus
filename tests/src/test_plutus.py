@@ -133,7 +133,7 @@ format_negatives_with_parentheses = False
 
         lines = stdout.splitlines()
 
-        first_line = '2024-01-12,"Personal Expenses:Transportation",20.01,"FreedomCard","Gas"'  # noqa: E501
+        first_line = '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"'  # noqa: E501
         last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
 
         expected_headers = "Date,Category,Amount,Method,Notes"
@@ -167,6 +167,7 @@ format_negatives_with_parentheses = False
         stdout, _stderr, rc = replace_csv_line(
             0, "Oops,Bad,Headers,Exist,,Here"
         )
+
         self.assertIn("CSV_HEADERS_MISMATCH", stdout)
         self.assertIn("1 linting error", stdout)
         self.assertEqual(1, rc)
@@ -272,7 +273,7 @@ format_negatives_with_parentheses = False
         self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
 
     def test_lint_invalid_sort(self):
-        first_line = '2024-01-12,"Personal Expenses:Transportation",20.01,"FreedomCard","Gas"'  # noqa: E501
+        first_line = '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"'  # noqa: E501
         last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
 
         with open(TEST_PROFILE) as file:
@@ -305,6 +306,11 @@ format_negatives_with_parentheses = False
             file.write(f"{duplicate_line}\n")
 
         stdout, _stderr, rc = call_script("lint")
+
+        self.assertIn("UNIQUENESS_MISMATCH", stdout)
+        self.assertIn("@@ -30,4 +30,3 @@", stdout)
+        self.assertEqual(1, rc)
+
         _, _, rc_no_uniue_errors = call_script("lint", "--no-unique-errors")
 
         with open(TEST_PROFILE) as file:
@@ -313,12 +319,10 @@ format_negatives_with_parentheses = False
         # Restore the file back without the duplicate.
         del lines[-1]
 
+
         with open(TEST_PROFILE, "w") as file:
             file.writelines(lines)
 
-        self.assertIn("UNIQUENESS_MISMATCH", stdout)
-        self.assertIn("@@ -29,4 +29,3 @@", stdout)
-        self.assertEqual(1, rc)
         self.assertEqual(0, rc_no_uniue_errors)
 
     def test_show(self):
@@ -326,13 +330,13 @@ format_negatives_with_parentheses = False
 
         lines = stdout.splitlines()
 
-        self.assertEqual(len(lines), 34)
+        self.assertEqual(len(lines), 35)
         self.assertIn("| Date", stdout)
         self.assertIn("2025-12-30", lines[-1])
         self.assertIn("Income:Affiliates:Amazon", lines[-1])
         self.assertIn("$234.56", lines[-1])
         self.assertIn("ACH", lines[-1])
-        self.assertIn("$1,337.00", lines[-1])
+        self.assertIn("-$440.23", lines[-1])
 
     def test_show_filtered_by_q3(self):
         stdout, _stderr, _rc = call_script("show", "2025-q3")
@@ -347,7 +351,7 @@ format_negatives_with_parentheses = False
         stdout, _stderr, _rc = call_script("show", "--raw")
         self.assertIn("Date,Category,Amount,Method,Notes", stdout)
         self.assertIn(
-            '2024-01-12,"Personal Expenses:Transportation",20.01,"FreedomCard","Gas"',  # noqa: E501
+            '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"',  # noqa: E501
             stdout,
         )
 
@@ -355,7 +359,7 @@ format_negatives_with_parentheses = False
         stdout, _stderr, _rc = call_script("show", "2025", "--raw")
         self.assertIn("Date,Category,Amount,Method,Notes", stdout)
         self.assertNotIn(
-            '2024-01-12,"Personal Expenses:Transportation",20.01,"FreedomCard","Gas"',  # noqa: E501
+            '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"',  # noqa: E501
             stdout,
         )
 
@@ -398,7 +402,7 @@ format_negatives_with_parentheses = False
         lines = stdout.splitlines()
 
         self.assertIn("-$3,200.00", lines[3])
-        self.assertIn("$1,337.00", lines[-1])
+        self.assertIn("-$440.23", lines[-1])
 
     def test_show_sort_by_amount_rev(self):
         stdout, _stderr, _rc = call_script("show", "--sort", "amount-")
@@ -406,7 +410,7 @@ format_negatives_with_parentheses = False
         lines = stdout.splitlines()
 
         self.assertIn("-$3,200.00", lines[-1])
-        self.assertIn("$1,337.00", lines[-1])
+        self.assertIn("-$440.23", lines[-1])
 
     def test_show_sort_by_method(self):
         stdout, _stderr, _rc = call_script("show", "--sort", "method")
@@ -449,35 +453,35 @@ format_negatives_with_parentheses = False
         self.assertIn("| Category", lines[1])
         self.assertIn("Tax:Refunds", lines[-1])
         self.assertIn("$1,850.00", lines[-1])
-        self.assertIn("$1,337.00", lines[-1])
+        self.assertIn("$440.23", lines[-1])
         self.assertIn("2", lines[-1])
-        self.assertIn("31", lines[-1])
+        self.assertIn("32", lines[-1])
 
     def test_show_summary_date(self):
         stdout, _stderr, _rc = call_script("show", "--summary", "date")
 
         lines = stdout.splitlines()
 
-        self.assertEqual(len(lines), 30)
+        self.assertEqual(len(lines), 31)
         self.assertIn("| Date", lines[1])
         self.assertIn("2025-12-30", lines[-1])
         self.assertIn("$234.56", lines[-1])
-        self.assertIn("$1,337.00", lines[-1])
+        self.assertIn("$440.23", lines[-1])
         self.assertIn("| 1", lines[-1])
-        self.assertIn("| 31", lines[-1])
+        self.assertIn("| 32", lines[-1])
 
     def test_show_summary_amount(self):
         stdout, _stderr, _rc = call_script("show", "--summary", "amount")
 
         lines = stdout.splitlines()
 
-        self.assertEqual(len(lines), 30)
+        self.assertEqual(len(lines), 31)
         self.assertIn("| Amount", lines[1])
         self.assertIn("1614.0", lines[-1])
         self.assertIn("$1,614.00", lines[-1])
-        self.assertIn("$1,337.00", lines[-1])
+        self.assertIn("-$440.23", lines[-1])
         self.assertIn("| 1", lines[-1])
-        self.assertIn("| 31", lines[-1])
+        self.assertIn("| 32", lines[-1])
 
     def test_show_summary_method(self):
         stdout, _stderr, _rc = call_script("show", "--summary", "method")
@@ -488,22 +492,22 @@ format_negatives_with_parentheses = False
         self.assertIn("| Method", lines[1])
         self.assertIn("Zelle", lines[-1])
         self.assertIn("$1,217.68", lines[-1])
-        self.assertIn("$1,337.00", lines[-1])
+        self.assertIn("$440.23", lines[-1])
         self.assertIn("| 5", lines[-1])
-        self.assertIn("| 31", lines[-1])
+        self.assertIn("| 32", lines[-1])
 
     def test_show_summary_notes(self):
         stdout, _stderr, _rc = call_script("show", "--summary", "notes")
 
         lines = stdout.splitlines()
 
-        self.assertEqual(len(lines), 20)
+        self.assertEqual(len(lines), 21)
         self.assertIn("| Notes", lines[1])
         self.assertIn("nickjanetakis.com", lines[-1])
         self.assertIn("-$10.95", lines[-1])
-        self.assertIn("$1,337.00", lines[-1])
+        self.assertIn("$440.23", lines[-1])
         self.assertIn("| 1", lines[-1])
-        self.assertIn("| 31", lines[-1])
+        self.assertIn("| 32", lines[-1])
 
     def test_show_summary_sort_by_category(self):
         stdout, _stderr, _rc = call_script("show", "-m", "--sort", "category")
@@ -562,7 +566,7 @@ format_negatives_with_parentheses = False
 
         lines = stdout.splitlines()
 
-        self.assertEqual(len(lines), 55)
+        self.assertEqual(len(lines), 56)
         self.assertIn("| Category", lines[1])
         self.assertIn("$42.60", lines[3])
         self.assertIn("| Date", lines[22])
@@ -575,9 +579,9 @@ format_negatives_with_parentheses = False
 
         lines = stdout.splitlines()
 
-        self.assertEqual(len(lines), 34)
-        self.assertNotIn("$1,337.00", lines[-1])
-        self.assertIn("1337.00", lines[-1])
+        self.assertEqual(len(lines), 35)
+        self.assertNotIn("-$440.23", lines[-1])
+        self.assertIn("-440.23", lines[-1])
 
     def test_show_format_negatives_with_parentheses(self):
         stdout, _stderr, _rc = replace_config_line(
@@ -586,7 +590,7 @@ format_negatives_with_parentheses = False
 
         lines = stdout.splitlines()
 
-        self.assertEqual(len(lines), 34)
+        self.assertEqual(len(lines), 35)
         self.assertNotIn("-$1,600.00", lines[7])
         self.assertIn("($1,600.00)", lines[7])
 
@@ -599,7 +603,7 @@ format_negatives_with_parentheses = False
         self.assertEqual(stdout, "")
 
     def test_edit_sort_with_changes(self):
-        first_line = '2024-01-12,"Personal Expenses:Transportation",20.01,"FreedomCard","Gas"'  # noqa: E501
+        first_line = '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"'  # noqa: E501
         last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
 
         with open(TEST_PROFILE) as file:
