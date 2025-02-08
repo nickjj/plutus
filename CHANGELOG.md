@@ -7,7 +7,18 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Added
+
+- `plutus insert` to safely and quickly add new items
+
+### Fixed
+
+- Add missing `\n` when `plutus edit --sort` writes the file
+
+### Changed
+
+- Switch diff labels to be more human friendly for `plutus edit --sort`
+
 
 ## [0.1.0] - 2025-02-07
 

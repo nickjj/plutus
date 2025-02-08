@@ -121,7 +121,7 @@ plutus show 2025
 
 
 
-# Show transactions from tax year 2025 Q4 and sort largest amounts on the bottom,
+# Show items from tax year 2025 Q4 and sort largest amounts on the bottom,
 # if you want to reverse it you can use: --sort amount- (trailing hyphen)
 plutus show 2025-q4 --sort amount
 
@@ -291,8 +291,8 @@ in `~/.local/bin` if you already have that set up and on your system path.
 ## 🚀 Getting started
 
 You can run `plutus` to start things off. It will prompt you to set a "profile"
-which is basically just your CSV file that contains your transactions. Don't
-sweat the location, you can change it at any time in your config file.
+which is basically just your CSV file that contains your items. Don't sweat the
+location, you can change it at any time in your config file.
 
 At this point you're technically done and can start adding items to your
 profile, but I would suggest running `plutus demo --init` and following the
@@ -302,15 +302,7 @@ That will create a separate demo profile that you can start using immediately
 to get a feel for using this tool without spending time importing or manually
 inputting your data.
 
-When you're ready to use your profile, it really comes down to popping open
-your code editor, adding items in and occasionally running the `lint` command
-to verify the syntax is ok. In the future I can see adding an `insert` command
-to help with that. Historically I just copy the last line and edit it. It's
-super fast already.
-
-For now you can run `plutus edit` to open your profile in your configured code
-editor. There's also `plutus edit --sort` to ensure your profile is sorted by
-date. This is currently the only profile write operation.
+The section below on using Plutus covers how to add items.
 
 ## ⚙️  Using Plutus
 
@@ -325,7 +317,7 @@ philosophy of no news is good news.
 Here's a list of commands and flags to get a quick idea of what's available:
 
 ```
-# View transactions
+# View items
 plutus show [-h] [-s FIELD] [-m [COLUMN]] [-w [COLUMN]] [-r] [PATTERN]
 
 positional arguments:
@@ -344,7 +336,16 @@ options:
 ```
 
 ```
-# Edit transactions in your code editor
+# Insert new items
+plutus insert [-h] [-s]
+
+options:
+  -h, --help  show this help message and exit
+  -s,
+```
+
+```
+# Edit or insert items in your code editor
 plutus edit [-h] [-s]
 
 options:
@@ -414,6 +415,35 @@ by that column.
 There's also `--summary-with-items` which returns both a summary and your
 item's details. You should see your total at the bottom of both outputs be the
 same.
+
+### Ready to add items?
+
+There's a couple of options depending on your preference.
+
+#### Using your code editor
+
+The `plutus edit` command will open your profile in your code editor and now
+you can add them however you see fit. Keep in mind this file is expected to be
+sorted by date but manually inserting old items from years ago could be error
+prone so there's a separate `plutus edit --sort` command you can run to
+auto-sort the items for you.
+
+What I like to do is always add items at the end of the file, and I even add in
+a couple of line breaks before my new items so I know what's new with no
+confusion as I'm editing. Then I save the file as is when I'm done.
+
+The `plutus edit --sort` command will auto-sort them for you and even show you
+a diff if the order changed.
+
+#### Using Plutus
+
+The `plutus insert` command will start an interactive prompt with you. It will
+actively verify the data you enter and do its best to make adding new items
+quick and painless.
+
+I use this method when adding 1 item at a time. For multiple items I tend to
+use my code editor but it really depends on your preference. Both options
+exist.
 
 ### Environment variables
 

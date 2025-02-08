@@ -629,8 +629,216 @@ def cmd_show(args):
     return None
 
 
-def cmd_edit(args):
-    if not args.sort:
+def cmd_insert(args):
+    # Show unique set of categories
+    result = load_profile_csv("", sort=None)
+
+    items_parsed = result["items"]["parsed"]
+
+    category_picker = {}
+    method_picker = {}
+    unique_categories = set()
+    unique_methods = set()
+
+    for item in items_parsed:
+        unique_categories.add(item[1])
+        unique_methods.add(item[3])
+
+    unique_categories = sorted(list(unique_categories))
+    unique_methods = sorted(list(unique_methods))
+
+    # ------------------------------------------------------------------------
+    # Category
+    # ------------------------------------------------------------------------
+    for i, category in enumerate(unique_categories, start=1):
+        category_picker[str(i)] = category
+        print(f"({i}) {category}")
+
+    category = ""
+    category_error = 0
+    is_new_category = False
+
+    while not category or category_error > 0:
+        category = input(
+            "\nInput a category number or create a new category: "
+        )
+        category = category.strip()
+
+        is_new_category = False
+        if category not in category_picker:
+            category_error = validate_category(
+                category, f'"{category}"', 1, category
+            )
+
+            if category_error > 0:
+                continue
+
+            category = category
+            is_new_category = True
+        else:
+            category = category_picker[category]
+
+        category_error = 0
+
+    print(f"\nHere's a preview up to the latest 5 items for [{category}]:\n")
+
+    if is_new_category:
+        print("There are none since you are creating a new category")
+    else:
+        limit = 0
+        for item in items_parsed:
+            if category == item[1]:
+                print(item)
+                limit += 1
+
+            if limit >= 5:
+                break
+
+    # ------------------------------------------------------------------------
+    # Date
+    # ------------------------------------------------------------------------
+    date = ""
+    date_error = 0
+    is_date_valid = False
+    today = datetime.today().strftime("%Y-%m-%d")
+
+    while not is_date_valid:
+        date = input(
+            f"\nInput the date or use today as the default ({today}): "
+        )
+
+        if date == "":
+            date = today
+        else:
+            date = date.strip()
+
+            date_error = validate_date(date, 1, date)
+
+            if date_error > 0:
+                continue
+
+            date = date
+
+        is_date_valid = True
+
+    # ------------------------------------------------------------------------
+    # Amount
+    # ------------------------------------------------------------------------
+    amount = ""
+    amount_error = 0
+
+    while not amount or amount_error > 0:
+        amount = input("\nInput the amount as a float: ")
+
+        try:
+            amount = amount.strip()
+
+            # We want this to skip instead of throwing an error.
+            if not amount:
+                continue
+
+            # In case commas are used, let's silently ignore them as a favor.
+            amount = float(amount.replace(",", ""))
+            amount = f"{amount:.2f}"
+        except ValueError:
+            pass
+
+        amount_error = validate_amount(amount, 1, amount)
+
+    # ------------------------------------------------------------------------
+    # Method
+    # ------------------------------------------------------------------------
+    print()
+    for i, method in enumerate(unique_methods, start=1):
+        method_picker[str(i)] = method
+        print(f"({i}) {method}")
+
+    method = ""
+    method_error = 0
+
+    while not method or method_error > 0:
+        method = input(
+            "\nInput a payment method number or create a new method: "
+        )
+
+        method = method.strip()
+
+        if method not in method_picker:
+            method_error = validate_method(method, f'"{method}"', 1, method)
+
+            if method_error > 0:
+                continue
+
+            method = method
+        else:
+            method = method_picker[method]
+
+        method_error = 0
+
+    # ------------------------------------------------------------------------
+    # Notes
+    # ------------------------------------------------------------------------
+    notes = ""
+    notes_error = 0
+    are_notes_valid = False
+
+    while not are_notes_valid:
+        notes = input("\nInput notes or leave it empty: ")
+
+        notes = notes.strip()
+
+        if notes:
+            raw_notes = f'"{notes}"'
+        else:
+            raw_notes = ""
+
+        notes_error = validate_notes(notes, raw_notes, 1, notes)
+
+        if notes_error > 0:
+            continue
+
+        are_notes_valid = True
+
+    # ------------------------------------------------------------------------
+    # Confirm we want to continue
+    # ------------------------------------------------------------------------
+    category = f'"{category}"'
+    method = f'"{method}"'
+
+    if notes:
+        notes = f'"{notes}"'
+
+    new_item = f"{date},{category},{amount},{method},{notes}"
+
+    print(f"\n{COLOR_GREEN}{new_item}{COLOR_RESET}")
+
+    y = ""
+
+    while y != "y":
+        y = input(
+            "\nDoes this new item look good? Enter y to save it or CTRL + c to cancel: "  # noqa: E501
+        )
+
+        y = y.lower()
+
+        if y == "y":
+
+            break
+
+    # ------------------------------------------------------------------------
+    # Save and sort
+    # ------------------------------------------------------------------------
+    with open(PLUTUS_PROFILE, "a") as file:
+        file.write(f"{new_item}\n")
+
+    if not cmd_edit(sort=True):
+        print("\nYour new item was saved successfully!")
+
+    return None
+
+
+def cmd_edit(sort=True):
+    if not sort:
         open_file_in_editor(PLUTUS_PROFILE)
 
         return None
@@ -644,6 +852,7 @@ def cmd_edit(args):
     diff = generate_diff(raw_items, raw_items_sorted, "original", "new")
 
     if diff:
+        print()
         print(f"{PLUTUS_PROFILE} was sorted, here's what changed:\n")
         print(diff)
 
@@ -654,7 +863,7 @@ def cmd_edit(args):
         file.writelines(raw_items_sorted)
         file.writelines("\n")
 
-    return None
+    return diff
 
 
 def cmd_demo(args):
@@ -968,7 +1177,7 @@ while not os.path.isfile(SCRIPT_CONFIG):
     welcome = f"""Welcome to {SCRIPT_NAME}!
 
 The first step is supplying a new profile, this file will contain all of your
-categorized transactions. It's a "profile" because you can have more than 1
+categorized items. It's a "profile" because you can have more than 1
 of them. They can exist anywhere too!
 
 TIP: Unless you have a very strong reason to do so, consider sticking with 1
@@ -1055,8 +1264,9 @@ parser = argparse.ArgumentParser(
 
 subparsers = parser.add_subparsers(help="subcommand help", dest="command")
 
-parser_show = subparsers.add_parser("show", help="view your transactions")
-parser_edit = subparsers.add_parser("edit", help="edit your transactions")
+parser_show = subparsers.add_parser("show", help="view your items")
+parser_insert = subparsers.add_parser("insert", help="insert a new item")
+parser_edit = subparsers.add_parser("edit", help="edit your items")
 parser_demo = subparsers.add_parser("demo", help="generate sample data")
 parser_lint = subparsers.add_parser("lint", help="identify formatting issues")
 parser_config = subparsers.add_parser("config", help="view / edit your config")
@@ -1199,8 +1409,10 @@ if not args.command == "demo" and not os.path.exists(PLUTUS_PROFILE):
 match args.command:
     case "show":
         cmd_show(args)
+    case "insert":
+        cmd_insert(args)
     case "edit":
-        cmd_edit(args)
+        cmd_edit(sort=args.sort)
     case "demo":
         cmd_demo(args)
     case "lint":
