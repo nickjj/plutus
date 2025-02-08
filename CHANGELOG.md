@@ -10,7 +10,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - `plutus insert` to safely and quickly add new items
-- A new lint warning to help identify income being negative and vice versa
+- A new lint warning to identify negative income / refunds and positive expenses
 
 ### Fixed
 
