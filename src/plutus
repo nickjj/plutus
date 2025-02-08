@@ -14,7 +14,7 @@ from datetime import datetime
 from itertools import tee
 
 try:
-    locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
+    locale.setlocale(locale.LC_ALL, "")
     locale_success = True
 except locale.Error:
     locale_success = False
@@ -755,7 +755,9 @@ def cmd_insert(args):
     amount_error = 0
 
     while not amount or amount_error > 0:
-        amount = input("\nInput the amount as a float: ")
+        amount = input(
+            "\nInput the unformatted amount to 2 decimal places (ie. 1000.00): "  # noqa: E501
+        )
 
         try:
             amount = amount.strip()
@@ -1133,7 +1135,7 @@ Items are shown in their raw format here to see how they are structured
 - Category
   - Must be wraped in double quotes
 - Amount
-  - Formatted as a positive or negative float to 2 decimal places
+  - Formatted as a positive or negative float but with 2 decimal places
   - Cannot be wrapped in double quotes
   - Cannot contain currency formatting characters such as a comma
     - There are formatting options to display them with currency symbols

@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Fixed
+
+- Display currency symbols correctly (they were always US based before)
 
 ## [0.2.1] - 2025-02-08
 

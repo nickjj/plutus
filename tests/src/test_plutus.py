@@ -96,6 +96,7 @@ format_negatives_with_parentheses = False
             pass
 
     def setUp(self):
+        os.environ["LC_ALL"] = "en_US.utf8"
         os.environ["PLUTUS_PROFILE"] = TEST_PROFILE
         os.environ["EDITOR"] = "cat"
 
@@ -614,6 +615,28 @@ format_negatives_with_parentheses = False
         self.assertEqual(len(lines), 35)
         self.assertNotIn("-$440.23", lines[-1])
         self.assertIn("-440.23", lines[-1])
+
+    def test_show_format_amounts_gb(self):
+        os.environ["LC_ALL"] = "en_GB.utf8"
+
+        stdout, _stderr, _rc = call_script("show")
+
+        lines = stdout.splitlines()
+
+        self.assertEqual(len(lines), 35)
+        self.assertNotIn("-$440.23", lines[-1])
+        self.assertIn("-£440.23", lines[-1])
+
+    def test_show_format_amounts_gr(self):
+        os.environ["LC_ALL"] = "el_GR.utf8"
+
+        stdout, _stderr, _rc = call_script("show")
+
+        lines = stdout.splitlines()
+
+        self.assertEqual(len(lines), 35)
+        self.assertNotIn("-$440.23", lines[-1])
+        self.assertIn("-440,23€", lines[-1])
 
     def test_show_format_negatives_with_parentheses(self):
         stdout, _stderr, _rc = replace_config_line(
