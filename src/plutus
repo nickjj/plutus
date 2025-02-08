@@ -1444,7 +1444,9 @@ parser_config.add_argument(
 
 args = parser.parse_args()
 
-if not args.command == "demo" and not os.path.exists(PLUTUS_PROFILE):
+if args.command not in ("config", "demo", "version") and not os.path.exists(
+    PLUTUS_PROFILE
+):
     display_error(None, "MISSING_PROFILE", PLUTUS_PROFILE)
     sys.exit(1)
 
