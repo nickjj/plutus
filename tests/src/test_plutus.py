@@ -96,6 +96,7 @@ format_negatives_with_parentheses = False
             pass
 
     def setUp(self):
+        os.environ["LC_ALL"] = "en_US.UTF-8"
         os.environ["PLUTUS_PROFILE"] = TEST_PROFILE
         os.environ["EDITOR"] = "cat"
 
