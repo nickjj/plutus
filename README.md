@@ -354,17 +354,6 @@ options:
 ```
 
 ```
-# Generate sample data and get inspiration on category names
-plutus demo [-h] [-n] [-c] [-i]
-
-options:
-  -h, --help        show this help message and exit
-  -n, --init        write a demo profile to disk
-  -c, --categories  view example categories to use as a starting point
-  -i, --items       view example items to see how they are structured
-```
-
-```
 # Identify formatting issues
 plutus lint [-h] [-r] [-E] [-U] [-a]
 
@@ -376,6 +365,17 @@ options:
                         don't exit with status code 1 if items are duplicated
   -a, --unique-amounts-date
                         check only the date + amount for uniqueness instead of all fields
+```
+
+```
+# Generate sample data and get inspiration on category names
+plutus demo [-h] [-n] [-c] [-i]
+
+options:
+  -h, --help        show this help message and exit
+  -n, --init        write a demo profile to disk
+  -c, --categories  view example categories to use as a starting point
+  -i, --items       view example items to see how they are structured
 ```
 
 ```
