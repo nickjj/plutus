@@ -1,4 +1,3 @@
-import locale
 import os
 import unittest
 from subprocess import PIPE
@@ -97,7 +96,6 @@ format_negatives_with_parentheses = False
             pass
 
     def setUp(self):
-        os.environ["LC_ALL"] = "en_US.utf8"
         os.environ["PLUTUS_PROFILE"] = TEST_PROFILE
         os.environ["EDITOR"] = "cat"
 
