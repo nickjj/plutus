@@ -14,6 +14,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Add missing `\n` when `plutus edit --sort` writes the file
+- Ignore empty new lines in your profile to avoid throwing a parse error
 
 ### Changed
 

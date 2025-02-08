@@ -395,6 +395,10 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
         # but use different processing. The normal csv reader will mangle
         # our custom quote set up so we have to read it as a file too.
         for item, raw_item in zip(csv.reader(output_1), output_2):
+            # Ignore empty lines.
+            if not item:
+                continue
+
             try:
                 # We want to get the headers with no extra parsing.
                 if total_line_count == 0:
