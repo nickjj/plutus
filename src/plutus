@@ -641,15 +641,18 @@ def cmd_edit(args):
     raw_items = "\n".join(result["items"]["raw"])
     raw_items_sorted = "\n".join(sorted(result["items"]["raw"]))
 
-    diff = generate_diff(raw_items_sorted, raw_items, "original", "new")
+    diff = generate_diff(raw_items, raw_items_sorted, "original", "new")
 
     if diff:
         print(f"{PLUTUS_PROFILE} was sorted, here's what changed:\n")
         print(diff)
 
-        with open(PLUTUS_PROFILE, "w") as file:
-            file.writelines(f"{raw_headers}\n")
-            file.writelines(raw_items_sorted)
+    # We always want to write a new file even if there's no diff. That's
+    # because we can still remove empty lines.
+    with open(PLUTUS_PROFILE, "w") as file:
+        file.writelines(f"{raw_headers}\n")
+        file.writelines(raw_items_sorted)
+        file.writelines("\n")
 
     return None
 
