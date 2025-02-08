@@ -32,7 +32,7 @@ COLOR_CYAN = "\033[36m"
 COLOR_RESET = "\033[0m"
 
 SCRIPT_NAME = os.path.basename(f"{sys.argv[0].replace('./', '')}")
-SCRIPT_VERSION = "0.1.0"
+SCRIPT_VERSION = "0.2.0"
 
 if os.getenv("PLUTUS_CONFIG"):
     if os.sep in os.getenv("PLUTUS_CONFIG"):
