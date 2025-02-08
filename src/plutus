@@ -106,17 +106,25 @@ def generate_diff(a, b, a_label="a", b_label="b"):
     return color_diff(diff)
 
 
-def display_error(line_number, label, item):
+def display_log(type, color, line_number, label, item):
     line_number_label = f" [{COLOR_CYAN}L{line_number}{COLOR_RESET}]"
 
     if line_number is None:
         line_number_label = ""
 
     print(
-        f"{COLOR_RED}ERROR{COLOR_RESET} [{COLOR_MAGENTA}{label}{COLOR_RESET}]{line_number_label}: {item}"  # noqa: E501
+        f"{color}{type}{COLOR_RESET} [{COLOR_MAGENTA}{label}{COLOR_RESET}]{line_number_label}: {item}"  # noqa: E501
     )
 
     return None
+
+
+def display_error(line_number, label, item):
+    display_log("ERROR", COLOR_RED, line_number, label, item)
+
+
+def display_warning(line_number, label, item):
+    display_log("WARNING", COLOR_YELLOW, line_number, label, item)
 
 
 def sort_by_str_date(items):
@@ -257,6 +265,21 @@ def validate_amount(raw_value, line, raw_item):
         errors += 1
 
     return errors
+
+
+def validate_amount_sign(category, raw_amount, line, raw_item):
+    warnings = 0
+
+    category = category.lower()
+
+    if ("income" in category or "refund" in category) and raw_amount[0] == "-":
+        display_warning(line, "INCOME_IS_NEGATIVE", raw_item)
+        warnings += 1
+    elif "expense" in category and raw_amount[0] != "-":
+        display_warning(line, "EXPENSE_IS_POSITIVE", raw_item)
+        warnings += 1
+
+    return warnings
 
 
 def validate_method(value, raw_value, line, raw_item):
@@ -902,6 +925,7 @@ def cmd_lint(args):
     items_parsed = result["items"]["parsed"]
 
     error_count = 0
+    warning_count = 0
 
     if headers_raw != CSV_HEADERS:
         display_error(1, "CSV_HEADERS_MISMATCH", "")
@@ -941,6 +965,12 @@ def cmd_lint(args):
         error_count += validate_date(item[0], i_, raw_item)
         error_count += validate_category(item[1], raw_category, i_, raw_item)
         error_count += validate_amount(raw_amount, i_, raw_item)
+
+        if not args.no_warnings:
+            warning_count += validate_amount_sign(
+                item[1], raw_amount, i_, raw_item
+            )
+
         error_count += validate_method(item[3], raw_method, i_, raw_item)
         error_count += validate_notes(item[4], raw_notes, i_, raw_item)
 
@@ -1353,6 +1383,14 @@ parser_lint.add_argument(
     default=False,
     action="store_true",
     help="don't exit with status code 1 if items are duplicated",
+)
+
+parser_lint.add_argument(
+    "-W",
+    "--no-warnings",
+    default=False,
+    action="store_true",
+    help="don't show warnings",
 )
 
 parser_lint.add_argument(

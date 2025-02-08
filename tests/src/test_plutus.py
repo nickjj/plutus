@@ -243,6 +243,39 @@ format_negatives_with_parentheses = False
         stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",ZZZ,"B",')
         self.assertIn("PARSE_FAILURE", stdout)
 
+    def test_lint_warning_amount(self):
+        stdout, stderr, rc = replace_csv_line(
+            1, '2024-01-12,"Income",-1.00,"B",'
+        )
+        self.assertIn("INCOME_IS_NEGATIVE", stdout)
+
+        stdout, stderr, rc = replace_csv_line(
+             1, '2024-01-12,"Tax:Refunds",-1.00,"B",'
+        )
+        self.assertIn("INCOME_IS_NEGATIVE", stdout)
+
+        stdout, stderr, rc = replace_csv_line(
+            1, '2024-01-12,"Business Expense",1.00,"B",'
+        )
+        self.assertIn("EXPENSE_IS_POSITIVE", stdout)
+
+    def test_lint_warning_amount_ignored(self):
+        stdout, stderr, rc = replace_csv_line(
+            1, '2024-01-12,"Income",-1.00,"B",', "--no-warnings"
+        )
+        self.assertNotIn("INCOME_IS_NEGATIVE", stdout)
+
+        stdout, stderr, rc = replace_csv_line(
+            1, '2024-01-12,"Tax:Refunds",-1.00,"B",', "--no-warnings"
+        )
+
+        self.assertNotIn("INCOME_IS_NEGATIVE", stdout)
+
+        stdout, stderr, rc = replace_csv_line(
+            1, '2024-01-12,"Business Expense",1.00,"B",', "--no-warnings"
+        )
+        self.assertNotIn("EXPENSE_IS_POSITIVE", stdout)
+
     def test_lint_invalid_method(self):
         stdout, stderr, rc = replace_csv_line(1, '2024-01-12,"A",1.00,"B\'",')
         self.assertIn("METHOD_MISMATCH", stdout)
@@ -318,7 +351,6 @@ format_negatives_with_parentheses = False
 
         # Restore the file back without the duplicate.
         del lines[-1]
-
 
         with open(TEST_PROFILE, "w") as file:
             file.writelines(lines)

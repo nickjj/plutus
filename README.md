@@ -200,9 +200,10 @@ Date,Category,Amount,Method,Notes
 
 
 
-# I introduced errors into the CSV file, the linter exposes them with color highlighting
+# I introduced issues into the CSV file, the linter exposes them with color highlighting
 plutus lint
 
+WARNING [EXPENSE_IS_POSITIVE] [L3]: 2024-02-28,"Personal Expenses:Transportation",32.00,"FreedomCard","Train to NYC"
 ERROR [DATE_MISMATCH] [L8]: 2024-99-15,"Income:Sponsors:OpenSource",0.01,"Venmo","Zero Cool"
 ERROR [CATEGORY_MISMATCH] [L12]: 2025-03-17,"Personal Expenses::Groceries",-14.14,"FreedomCard",
 ERROR [NOTES_MISMATCH] [L23]: 2025-08-18,"Business Expenses:Rent",-3200.00,"Cash","2 months, commas aren't allow"
@@ -358,7 +359,7 @@ options:
 
 ```
 # Identify formatting issues
-plutus lint [-h] [-r] [-E] [-U] [-a]
+plutus lint [-h] [-r] [-E] [-U] [-W] [-a]
 
 options:
   -h, --help            show this help message and exit
@@ -366,6 +367,7 @@ options:
   -E, --no-errors       don't exit with status code 1 (could be useful in CI)
   -U, --no-unique-errors
                         don't exit with status code 1 if items are duplicated
+  -W, --no-warnings     don't show warnings
   -a, --unique-amounts-date
                         check only the date + amount for uniqueness instead of all fields
 ```
