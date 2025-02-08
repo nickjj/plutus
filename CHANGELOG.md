@@ -11,7 +11,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.2.1] - 2025-02-08
 
-## Fixed
+### Fixed
 
 - Allow `config` and `version` commands to be run without needing a profile
 
