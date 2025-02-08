@@ -250,7 +250,7 @@ format_negatives_with_parentheses = False
         self.assertIn("INCOME_IS_NEGATIVE", stdout)
 
         stdout, stderr, rc = replace_csv_line(
-             1, '2024-01-12,"Tax:Refunds",-1.00,"B",'
+            1, '2024-01-12,"Tax:Refunds",-1.00,"B",'
         )
         self.assertIn("INCOME_IS_NEGATIVE", stdout)
 
