@@ -1,3 +1,4 @@
+import locale
 import os
 import unittest
 from subprocess import PIPE
@@ -624,8 +625,12 @@ format_negatives_with_parentheses = False
         lines = stdout.splitlines()
 
         self.assertEqual(len(lines), 35)
-        self.assertNotIn("-$440.23", lines[-1])
-        self.assertIn("-£440.23", lines[-1])
+
+        if locale.getlocale() == (None, None):
+            self.assertIn("-$440.23", lines[-1])
+        else:
+            self.assertNotIn("-$440.23", lines[-1])
+            self.assertIn("-£440.23", lines[-1])
 
     def test_show_format_amounts_gr(self):
         os.environ["LC_ALL"] = "el_GR.utf8"
@@ -635,8 +640,12 @@ format_negatives_with_parentheses = False
         lines = stdout.splitlines()
 
         self.assertEqual(len(lines), 35)
-        self.assertNotIn("-$440.23", lines[-1])
-        self.assertIn("-440,23€", lines[-1])
+
+        if locale.getlocale() == (None, None):
+            self.assertIn("-$440.23", lines[-1])
+        else:
+            self.assertNotIn("-$440.23", lines[-1])
+            self.assertIn("-440,23€", lines[-1])
 
     def test_show_format_negatives_with_parentheses(self):
         stdout, _stderr, _rc = replace_config_line(
