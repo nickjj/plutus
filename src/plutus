@@ -6,12 +6,17 @@ import csv
 import difflib
 import locale
 import os
+import random
 import re
+import string
 import sys
 import textwrap
+import time
 import traceback
 from datetime import datetime
 from itertools import tee
+from subprocess import PIPE
+from subprocess import Popen
 
 try:
     locale.setlocale(locale.LC_ALL, "")
@@ -343,6 +348,81 @@ def validate_unique(raw_items_sorted, raw_items_set, no_errors=False):
             errors += 1
 
     return errors
+
+
+def run_demo_benchmark(n, categories):
+    output_file = f"{DEMO_PROFILE}-{n}"
+    items = []
+
+    methods = [
+        "ACH",
+        "Checking",
+        "FreedomCard",
+        "PayPal",
+        "SapphireCard",
+        "Stripe",
+        "Venmo",
+        "Zelle",
+    ]
+
+    print()
+    print(f"[Generating {n} items]")
+
+    start_time = time.time()
+
+    for i in range(0, n + 1):
+        year = f"{random.randint(1999, datetime.now().year)}"
+        month = f"{random.randint(1, 12):02d}"
+        day = f"{random.randint(1, 28):02d}"
+        date = f"{year}-{month}-{day}"
+
+        category = random.choice(categories)
+        amount = f"{random.uniform(1,5000):.2f}"
+
+        if "expense" in category.lower():
+            amount = f"-{amount}"
+
+        method = random.choice(methods)
+        notes = "".join(
+            random.choices(
+                string.ascii_uppercase + string.digits, k=random.randint(2, 20)
+            )
+        )
+
+        item = f'{date},"{category}",{amount},"{method}","{notes}"'
+        items.append(item)
+
+    duration = (time.time() - start_time) * 1000
+    print(f"generation took {duration:.2f}ms")
+
+    items = "\n".join(sorted(items))
+
+    start_time = time.time()
+
+    with open(output_file, "w") as file:
+        file.writelines(f"{CSV_HEADERS}\n")
+        file.writelines(items)
+        file.writelines("\n")
+
+    duration = (time.time() - start_time) * 1000
+    print(f"wrote {output_file} in {duration:.2f}ms")
+
+    os.environ["PLUTUS_PROFILE"] = f"{DEMO_PROFILE}-{n}"
+
+    start_time = time.time()
+
+    process = Popen(
+        ["src/plutus", "show", "--summary"],
+        stdout=PIPE,
+        stderr=PIPE,
+        text=True,
+    )
+    stdout, _stderr = process.communicate()
+
+    duration = (time.time() - start_time) * 1000
+    print(f"'plutus show --summary' finished reporting in {duration:.2f}ms")
+
+    return items
 
 
 def open_file_in_editor(file):
@@ -1007,11 +1087,6 @@ def cmd_demo(args):
     year = "2025"
     last_year = "2024"
 
-    if not args.no_dynamic_years:
-        # Demos should be up to date but not for our tests!
-        year = datetime.now().year
-        last_year = datetime.now().year - 1
-
     example_categories = [
         "Business Expenses:Accountant",
         "Business Expenses:Affiliates",
@@ -1054,6 +1129,30 @@ def cmd_demo(args):
         "Tax:Paid",
         "Tax:Refunds",
     ]
+
+    if not args.no_dynamic_years:
+        # Demos should be up to date but not for our tests!
+        year = datetime.now().year
+        last_year = datetime.now().year - 1
+
+    if args.init_benchmark:
+        run_demo_benchmark(1000, example_categories)
+        run_demo_benchmark(10000, example_categories)
+        run_demo_benchmark(100000, example_categories)
+
+        print(
+            f"""
+Optionally confirm these results on your own with your shell's time command:
+
+time PLUTUS_PROFILE="{DEMO_PROFILE}-1000" plutus show --summary > /dev/null
+time PLUTUS_PROFILE="{DEMO_PROFILE}-10000" plutus show --summary > /dev/null
+time PLUTUS_PROFILE="{DEMO_PROFILE}-100000" plutus show --summary > /dev/null
+
+Remove '> /dev/null' to see the output printed, it won't take much longer,
+it redirects to /dev/null to avoid spamming your terminal output"""
+        )
+
+        return None
 
     if args.categories:
         print(
@@ -1409,6 +1508,14 @@ parser_demo.add_argument(
     default=False,
     action="store_true",
     help="write a demo profile to disk",
+)
+
+parser_demo.add_argument(
+    "-b",
+    "--init-benchmark",
+    default=False,
+    action="store_true",
+    help="write multiple demo profiles to disk and measure their performance",
 )
 
 parser_demo.add_argument(

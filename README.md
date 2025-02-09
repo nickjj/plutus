@@ -236,6 +236,36 @@ ERROR [SORT_BY_DATE_MISMATCH]:
 - Items are sorted by date
 - Items are unique
   - Set --no-unique-errors to not exit 1 if there are duplicates
+
+
+
+# Performance is taken seriously but it's practical in terms of "good enough",
+# here are results on my computer built in 2014 (yes 2014), you can run them too
+plutus demo --init-benchmark
+
+[Generating 1000 items]
+generation took 8.73ms
+wrote /tmp/plutus.csv-1000 in 4.19ms
+'plutus show --summary' finished reporting in 56.32ms
+
+[Generating 10000 items]
+generation took 89.73ms
+wrote /tmp/plutus.csv-10000 in 41.20ms
+'plutus show --summary' finished reporting in 92.88ms
+
+[Generating 100000 items]
+generation took 842.81ms
+wrote /tmp/plutus.csv-100000 in 404.58ms
+'plutus show --summary' finished reporting in 566.45ms
+
+Optionally confirm these results on your own with your shell's time command:
+
+time PLUTUS_PROFILE="/tmp/plutus.csv-1000" plutus show --summary > /dev/null
+time PLUTUS_PROFILE="/tmp/plutus.csv-10000" plutus show --summary > /dev/null
+time PLUTUS_PROFILE="/tmp/plutus.csv-100000" plutus show --summary > /dev/null
+
+Remove '> /dev/null' to see the output printed, it won't take much longer,
+it redirects to /dev/null to avoid spamming your terminal output
 ```
 
 There's a few more options and commands but that's the core of it.
@@ -253,7 +283,7 @@ There's a few more options and commands but that's the core of it.
   - Easy to write custom importers (ie. bank CSVs) since you just produce a CSV file
   - Easy to share with accountants if requested (1 file and a common format)
 - Most commands only open the CSV file in read-only mode to protect against corruption
-  - The few commands that write to it are super explicit (ie. `edit` commands)
+  - The few commands that write to it are super explicit (ie. `insert` and `edit`)
 - An extensive `lint` command to help identify any input errors
 - Categories and subcategories are unrestricted along with being easy to change later
 - Flexible summary reporting options to see your data from different angles
@@ -267,10 +297,11 @@ There's a few more options and commands but that's the core of it.
         - This filter pattern is dependent on your category names
 - Bidirectionally sort items by date (default), category, amount and more
   - Items are always sorted by date on disk in the CSV file, sorting is done in memory for displaying
-- It is reasonably fast, it outputs a sorted summary for 12,000 items in ~100ms
-  - Printing 12,000 item details to the terminal takes 700ms on my 10 year old computer
-  - I tested it with 100,000 items and a summary takes 600ms on the same machine
+- It is reasonably fast, a sorted summary for 12,000 items takes ~100ms on my 10 year old computer
+  - Printing a summay with 100,000 items takes 560ms
     - For my use case, that would be around 70 years of finance tracking
+  - Printing all 12,000 item details (not a summary) takes 700ms
+  - `plutus demo --init-benchmark` will benchmark 1,000, 10,000 and 100,000 items
 - Supports various formatting symbols depending on your locale and preference
   - Optionally show currency symbols / separators and display `()` instead of `-` for negatives
 
@@ -373,14 +404,15 @@ options:
 ```
 
 ```
-# Generate sample data and get inspiration on category names
-plutus demo [-h] [-n] [-c] [-i]
+# Generate sample data, run benchmarks and get inspiration on category names
+usage: plutus demo [-h] [-n] [-b] [-c] [-i]
 
 options:
-  -h, --help        show this help message and exit
-  -n, --init        write a demo profile to disk
-  -c, --categories  view example categories to use as a starting point
-  -i, --items       view example items to see how they are structured
+  -h, --help            show this help message and exit
+  -n, --init            write a demo profile to disk
+  -b, --init-benchmark  write multiple demo profiles to disk and measure their performance
+  -c, --categories      view example categories to use as a starting point
+  -i, --items           view example items to see how they are structured
 ```
 
 ```
@@ -437,8 +469,8 @@ What I like to do is always add items at the end of the file, and I even add in
 a couple of line breaks before my new items so I know what's new with no
 confusion as I'm editing. Then I save the file as is when I'm done.
 
-The `plutus edit --sort` command will auto-sort them for you and even show you
-a diff if the order changed.
+The `plutus edit --sort` command auto-sorts them for you, removes empty lines
+and shows you a diff.
 
 #### Using Plutus
 
