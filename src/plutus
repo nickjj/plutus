@@ -370,7 +370,7 @@ def run_demo_benchmark(n, categories):
 
     start_time = time.time()
 
-    for i in range(0, n + 1):
+    for i in range(0, n):
         year = f"{random.randint(1999, datetime.now().year)}"
         month = f"{random.randint(1, 12):02d}"
         day = f"{random.randint(1, 28):02d}"

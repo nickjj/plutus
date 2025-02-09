@@ -1,10 +1,38 @@
+import contextlib
+import importlib.util
+import io
 import os
+import sys
 import unittest
 from subprocess import PIPE
 from subprocess import Popen
 
+PLUTUS = None
 TEST_CONFIG = "/tmp/plutus.ini"
 TEST_PROFILE = "/tmp/plutus.csv"
+
+
+def load_plutus_module():
+    # This was an adventure to be able to load the src/plutus module without
+    # it having a .py file extension.
+    module_path = "src/plutus"
+    module_name = "module_name"
+
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+
+    if spec is None:
+        spec = importlib.machinery.ModuleSpec(module_name, None)
+        spec.loader = importlib.machinery.SourceFileLoader(
+            module_name, module_path
+        )
+
+    module = importlib.util.module_from_spec(spec)
+
+    sys.modules[module_name] = module
+
+    spec.loader.exec_module(module)
+
+    return module
 
 
 def call_script(*args):
@@ -155,6 +183,28 @@ format_negatives_with_parentheses = False
         self.assertEqual(expected_headers, actual_headers)
         self.assertEqual(expected_items, actual_items)
         self.assertNotIn("SCRIPT_NAME", stdout)
+
+    def test_demo_items_benchmark(self):
+        PLUTUS = load_plutus_module()
+
+        categories = ["a", "b"]
+
+        # Without this, the output was always being printed to stdout.
+        with contextlib.redirect_stdout(io.StringIO()):
+            PLUTUS.run_demo_benchmark(10, categories)
+
+        items = []
+        benchmark_profile_path = f"{PLUTUS.DEMO_PROFILE}-10"
+        with open(benchmark_profile_path) as file:
+            for line in file:
+                items.append(line.strip())
+
+        self.assertEqual(11, len(items))
+        self.assertEqual(items[0], PLUTUS.CSV_HEADERS)
+        self.assertEqual(items[1].count(","), 4)
+
+        if os.path.exists(benchmark_profile_path):
+            os.remove(benchmark_profile_path)
 
     def test_lint_rules(self):
         stdout, _stderr, _rc = call_script("lint", "--rules")
