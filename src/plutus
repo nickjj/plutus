@@ -412,7 +412,7 @@ def run_demo_benchmark(n, categories):
     start_time = time.time()
 
     process = Popen(
-        ["src/plutus", "show", "--summary"],
+        [sys.argv[0], "show", "--summary"],
         stdout=PIPE,
         stderr=PIPE,
         text=True,
