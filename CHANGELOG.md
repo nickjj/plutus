@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Fixed
+
+- `plutus demo --init-benchmark` to run with any `plutus` binary path (really fixed)
 
 ## [0.2.4] - 2025-02-09
 

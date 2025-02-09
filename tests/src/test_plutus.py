@@ -20,7 +20,7 @@ def load_plutus_module():
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
 
-    sys.argv = ["plutus"]
+    sys.argv = ["src/plutus"]
 
     if spec is None:
         spec = importlib.machinery.ModuleSpec(module_name, None)
