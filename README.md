@@ -88,8 +88,10 @@ thing looks like because if I don't like it or it looks too complicated I will
 close this browser tab and never think about it again". I know that's what I
 would be thinking!
 
+**Show items from calendar year 2025, in this case "2025" is an optional regex
+pattern:**
+
 ```
-# Show items from calendar year 2025, in this case "2025" is an optional regex pattern
 plutus show 2025
 
 --------------------------------------------------------------------------------------------------------------------------------
@@ -119,11 +121,12 @@ plutus show 2025
 22 | 2025-11-30 | Income:Affiliates:DigitalOcean          | $25.00     | $1,052.44  | ACH         |
 23 | 2025-11-30 | Income:Affiliates:DigitalOcean          | $50.00     | $1,102.44  | ACH         |
 24 | 2025-12-30 | Income:Affiliates:Amazon                | $234.56    | $1,337.00  | ACH         |
+```
 
+**Show items from tax year 2025 Q4 and sort largest amounts on the bottom,
+reverse it with `--sort amount-`:**
 
-
-# Show items from tax year 2025 Q4 and sort largest amounts on the bottom,
-# if you want to reverse it you can use: --sort amount- (trailing hyphen)
+```
 plutus show 2025-q4 --sort amount
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -139,11 +142,12 @@ plutus show 2025-q4 --sort amount
 8  | 2025-11-30 | Income:Affiliates:Amazon               | $345.67   | $730.83   | ACH         |
 9  | 2025-10-17 | Income:Consulting                      | $600.00   | $1,330.83 | Zelle       | Johnny Tables (Flask)
 10 | 2025-10-11 | Income:Consulting                      | $1,500.00 | $2,830.83 | PayPal      | Alice (Docker)
+```
 
+**Aggregate amount totals for each category (default), date, amount, method or
+notes:**
 
-
-# Aggregate amount totals and item counts for each category for all dates, you
-# can do this on any column, for example: --summary method or --summary date
+```
 plutus show --summary
 
 --------------------------------------------------------------------------------------
@@ -165,10 +169,12 @@ plutus show --summary
 14 | Personal Expenses:Groceries             | -$182.56   | -$994.19   | 3     | 27
 15 | Personal Expenses:Transportation        | -$1,296.04 | -$2,290.23 | 3     | 30
 16 | Tax:Refunds                             | $1,850.00  | -$440.23   | 2     | 32
+```
 
+**Filter only the business expenses category, using `:` helps avoid false
+positive matches:**
 
-
-# Only show the business expenses category, using : is helpful to avoid false positive matches
+```
 plutus show "Business Expenses:"
 
 --------------------------------------------------------------------------------------------------------------------------
@@ -182,10 +188,11 @@ plutus show "Business Expenses:"
 6 | 2025-09-01 | Business Expenses:Affiliates           | -$24.90    | -$4,910.62 | Zelle        | William Thatcher
 7 | 2025-09-01 | Business Expenses:Hosting:DigitalOcean | -$12.00    | -$4,922.62 | FreedomCard  |
 8 | 2025-09-03 | Business Expenses:Hosting:Domain Names | -$10.95    | -$4,933.57 | PayPal       | nickjanetakis.com
+```
 
+**Show the raw contents of the CSV file for 2024**:
 
-
-# Show raw CSV data for 2024
+```
 plutus show 2024 --raw
 
 Date,Category,Amount,Method,Notes
@@ -197,10 +204,12 @@ Date,Category,Amount,Method,Notes
 2024-08-24,"Business Expenses:Dining Out",-56.02,"SapphireCard","Meeting with King Midas"
 2024-09-15,"Income:Sponsors:OpenSource",0.01,"Venmo","Zero Cool"
 2024-11-30,"Income:Affiliates:DigitalOcean",25.00,"ACH",
+```
 
+**I introduced issues into the CSV file on purpose, the linter exposes them
+with color highlighting:**
 
-
-# I introduced issues into the CSV file, the linter exposes them with color highlighting
+```
 plutus lint
 
 WARNING [EXPENSE_IS_POSITIVE] [L3]: 2024-02-28,"Personal Expenses:Transportation",32.00,"FreedomCard","Train to NYC"
@@ -236,11 +245,12 @@ ERROR [SORT_BY_DATE_MISMATCH]:
 - Items are sorted by date
 - Items are unique
   - Set --no-unique-errors to not exit 1 if there are duplicates
+```
 
+**Performance is "good enough", here are results from my computer built in
+2014 (yes 2014):**
 
-
-# Performance is taken seriously but it's practical in terms of "good enough",
-# here are results on my computer built in 2014 (yes 2014), you can run them too
+```
 plutus demo --init-benchmark
 
 [Generating 1000 items]
@@ -298,7 +308,7 @@ There's a few more options and commands but that's the core of it.
 - Bidirectionally sort items by date (default), category, amount and more
   - Items are always sorted by date on disk in the CSV file, sorting is done in memory for displaying
 - It is reasonably fast, a sorted summary for 12,000 items takes ~100ms on my 10 year old computer
-  - Printing a summay with 100,000 items takes 560ms
+  - Printing a summary with 100,000 items takes 560ms
     - For my use case, that would be around 70 years of finance tracking
   - Printing all 12,000 item details (not a summary) takes 700ms
   - `plutus demo --init-benchmark` will benchmark 1,000, 10,000 and 100,000 items
