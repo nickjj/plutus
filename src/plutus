@@ -1319,7 +1319,6 @@ parser = argparse.ArgumentParser(
         f"""\
     Plutus is a tool to help track your income and expenses.
 
-
     Please report issues or feedback at https://github.com/nickjj/{SCRIPT_NAME}
     """
     ),
