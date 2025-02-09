@@ -737,7 +737,6 @@ def cmd_show(args):
 
 
 def cmd_insert(args):
-    # Show unique set of categories
     result = load_profile_csv("", sort=None)
 
     items_parsed = result["items"]["parsed"]
