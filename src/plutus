@@ -991,7 +991,7 @@ def cmd_lint(args):
   - Set --no-unique-errors to not exit 1 if there are duplicates"""
 
     if args.rules:
-        print("Your profile is checked with the following rules:")
+        print("Your profile was checked with the following rules:")
         print(lint_rules)
 
         return None
