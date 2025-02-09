@@ -1554,7 +1554,6 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
     # -------------------------------------------------------------------------
     # What command are we running?
     # -------------------------------------------------------------------------
-
     args = parser.parse_args()
 
     if args.command not in (
@@ -1565,7 +1564,6 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
         display_error(None, "MISSING_PROFILE", PLUTUS_PROFILE)
         sys.exit(1)
 
-    # Only run these if the scrpit is called, not imported.
     match args.command:
         case "show":
             cmd_show(args)
