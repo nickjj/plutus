@@ -415,7 +415,7 @@ options:
 
 ```
 # Generate sample data, run benchmarks and get inspiration on category names
-usage: plutus demo [-h] [-n] [-b] [-c] [-i]
+plutus demo [-h] [-n] [-b] [-c] [-i]
 
 options:
   -h, --help            show this help message and exit
