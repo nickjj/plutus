@@ -1311,78 +1311,6 @@ def cmd_version():
 
 
 # ----------------------------------------------------------------------------
-# Initial profile creation and initialization
-# ----------------------------------------------------------------------------
-while not os.path.isfile(SCRIPT_CONFIG):
-    welcome = f"""Welcome to {SCRIPT_NAME}!
-
-The first step is supplying a new profile, this file will contain all of your
-categorized items. It's a "profile" because you can have more than 1
-of them. They can exist anywhere too!
-
-TIP: Unless you have a very strong reason to do so, consider sticking with 1
-profile and use categories to split things out. More details on this later.
-
-By default all {SCRIPT_NAME} commands will use this profile.
-"""
-
-    print(welcome)
-    path = input(
-        f"Enter default profile path or skip to use the shown path ({DEFAULT_PROFILE}): "  # noqa: E501
-    )
-
-    if not path:
-        path = DEFAULT_PROFILE
-
-    os.makedirs(SCRIPT_DIR, exist_ok=True)
-    config["Settings"] = {
-        "default_profile": path,
-        "format_amounts": True,
-        "format_negatives_with_parentheses": False,
-    }
-    with open(SCRIPT_CONFIG, "w") as file:
-        config.write(file)
-
-    if os.path.exists(path):
-        print(f"\n{path} already exists, skipping!\n")
-        continue
-
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as file:
-        file.write(f"{CSV_HEADERS}")
-
-    success = f"""
----
-
-Everything was set up successfully.
-
-Files of interest
-  - Config file: {SCRIPT_CONFIG} (you can manually update this file at any time)
-  - Configured default profile path: {path}
-
-Getting started
-  - Import from any supported tools (GnuCash) if applicable
-  - Alternatively, run '{SCRIPT_NAME} demo --init' to create a temp profile with demo data
-    - This will write demo data to disk to '{DEMO_PROFILE}'
-    - Rather than try to explain everything, seeing the format may be intuitive
-    - It gives you a chance to play with the tool without investing a lot of time
-
-Example commands
-  - Run '{SCRIPT_NAME} help' to see examples of which commands you can run
-
-If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}"""  # noqa: E501
-
-    print(success)
-    sys.exit()
-
-config.read(SCRIPT_CONFIG)
-
-PLUTUS_PROFILE = os.getenv(
-    "PLUTUS_PROFILE", config.get("Settings", "default_profile")
-)
-
-
-# ----------------------------------------------------------------------------
 # CLI arguments
 # ----------------------------------------------------------------------------
 
@@ -1551,28 +1479,107 @@ parser_config.add_argument(
     help="edit your config file",
 )
 
-args = parser.parse_args()
+if __name__ == "__main__":
+    # -------------------------------------------------------------------------
+    # Initial profile creation and initialization
+    # -------------------------------------------------------------------------
+    while not os.path.isfile(SCRIPT_CONFIG):
+        welcome = f"""Welcome to {SCRIPT_NAME}!
 
-if args.command not in ("config", "demo", "version") and not os.path.exists(
-    PLUTUS_PROFILE
-):
-    display_error(None, "MISSING_PROFILE", PLUTUS_PROFILE)
-    sys.exit(1)
+The first step is supplying a new profile, this file will contain all of your
+categorized items. It's a "profile" because you can have more than 1
+of them. They can exist anywhere too!
 
-match args.command:
-    case "show":
-        cmd_show(args)
-    case "insert":
-        cmd_insert(args)
-    case "edit":
-        cmd_edit(sort=args.sort)
-    case "lint":
-        cmd_lint(args)
-    case "demo":
-        cmd_demo(args)
-    case "config":
-        cmd_config(args)
-    case "version":
-        cmd_version()
-    case None:
-        os.system(f"{sys.argv[0]} --help")
+TIP: Unless you have a very strong reason to do so, consider sticking with 1
+profile and use categories to split things out. More details on this later.
+
+By default all {SCRIPT_NAME} commands will use this profile.
+    """
+
+        print(welcome)
+        path = input(
+            f"Enter default profile path or skip to use the shown path ({DEFAULT_PROFILE}): "  # noqa: E501
+        )
+
+        if not path:
+            path = DEFAULT_PROFILE
+
+        os.makedirs(SCRIPT_DIR, exist_ok=True)
+        config["Settings"] = {
+            "default_profile": path,
+            "format_amounts": True,
+            "format_negatives_with_parentheses": False,
+        }
+        with open(SCRIPT_CONFIG, "w") as file:
+            config.write(file)
+
+        if os.path.exists(path):
+            print(f"\n{path} already exists, skipping!\n")
+            continue
+
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as file:
+            file.write(f"{CSV_HEADERS}")
+
+        success = f"""
+---
+
+Everything was set up successfully.
+
+Files of interest
+  - Config file: {SCRIPT_CONFIG} (you can manually update this file at any time)
+  - Configured default profile path: {path}
+
+Getting started
+  - Import from any supported tools (GnuCash) if applicable
+  - Alternatively, run '{SCRIPT_NAME} demo --init' to create a temp profile with demo data
+    - This will write demo data to disk to '{DEMO_PROFILE}'
+    - Rather than try to explain everything, seeing the format may be intuitive
+    - It gives you a chance to play with the tool without investing a lot of time
+
+Example commands
+  - Run '{SCRIPT_NAME} help' to see examples of which commands you can run
+
+If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}"""  # noqa: E501
+
+        print(success)
+        sys.exit()
+
+    config.read(SCRIPT_CONFIG)
+
+    PLUTUS_PROFILE = os.getenv(
+        "PLUTUS_PROFILE", config.get("Settings", "default_profile")
+    )
+
+    # -------------------------------------------------------------------------
+    # What command are we running?
+    # -------------------------------------------------------------------------
+
+    args = parser.parse_args()
+
+    if args.command not in (
+        "config",
+        "demo",
+        "version",
+    ) and not os.path.exists(PLUTUS_PROFILE):
+        display_error(None, "MISSING_PROFILE", PLUTUS_PROFILE)
+        sys.exit(1)
+
+    # Only run these if the scrpit is called, not imported.
+    match args.command:
+        case "show":
+            cmd_show(args)
+        case "insert":
+            cmd_insert(args)
+        case "edit":
+            cmd_edit(sort=args.sort)
+        case "lint":
+            cmd_lint(args)
+        case "demo":
+            cmd_demo(args)
+        case "config":
+            cmd_config(args)
+        case "version":
+            cmd_version()
+        case None:
+            os.system(f"{sys.argv[0]} --help")
