@@ -539,10 +539,16 @@ format_negatives_with_parentheses = False
 
 # Comma separated list of words to search for when linting amounts to make
 # sure income is not accidentally a negative number.
+#
+# It is not case sensitive and partial matches are ok. For example if you have
+# a category name of "Tax:Refunds" then "refund" will match.
 lint_income_words = income,refund
 
 # Comma separated list of words to search for when linting amounts to make
 # sure expenses are not accidentally a positive number.
+#
+# It is not case sensitive and partial matches are ok. For example if you have
+# a category name of "Business Expenses" then "expense" will match.
 lint_expense_words = expense
 ```
 
