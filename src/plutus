@@ -36,7 +36,8 @@ COLOR_MAGENTA = "\033[35m"
 COLOR_CYAN = "\033[36m"
 COLOR_RESET = "\033[0m"
 
-SCRIPT_NAME = os.path.basename(f"{sys.argv[0].replace('./', '')}")
+SCRIPT_PATH = sys.argv[0]
+SCRIPT_NAME = os.path.basename(f"{SCRIPT_PATH.replace('./', '')}")
 SCRIPT_VERSION = "0.2.5"
 
 if os.getenv("PLUTUS_CONFIG"):
@@ -412,7 +413,7 @@ def run_demo_benchmark(n, categories):
     start_time = time.time()
 
     process = Popen(
-        [sys.argv[0], "show", "--summary"],
+        [SCRIPT_PATH, "show", "--summary"],
         stdout=PIPE,
         stderr=PIPE,
         text=True,
@@ -1578,4 +1579,4 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
         case "version":
             cmd_version()
         case None:
-            os.system(f"{sys.argv[0]} --help")
+            os.system(f"{SCRIPT_PATH} --help")
