@@ -1,3 +1,4 @@
+import configparser
 import contextlib
 import importlib.util
 import io
@@ -102,15 +103,17 @@ class TestCLI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not os.path.exists(TEST_CONFIG):
-            config = f"""[Settings]
-default_profile = "{TEST_PROFILE}"
-format_amounts = True
-format_negatives_with_parentheses = False
-"""
+            PLUTUS = load_plutus_module()
+
+            config = configparser.ConfigParser()
+
+            config["Settings"] = PLUTUS.CONFIG_DEFAULTS | {
+                "default_profile": TEST_PROFILE
+            }
 
             os.makedirs(os.path.dirname(TEST_CONFIG), exist_ok=True)
             with open(TEST_CONFIG, "w") as file:
-                file.write(config)
+                config.write(file)
 
         os.environ["PLUTUS_CONFIG"] = TEST_CONFIG
         _stdout, _stderr, _rc = call_script(

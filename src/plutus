@@ -14,6 +14,7 @@ import textwrap
 import time
 import traceback
 from datetime import datetime
+from io import StringIO
 from itertools import tee
 from subprocess import PIPE
 from subprocess import Popen
@@ -39,6 +40,12 @@ COLOR_RESET = "\033[0m"
 SCRIPT_PATH = sys.argv[0]
 SCRIPT_NAME = os.path.basename(f"{SCRIPT_PATH.replace('./', '')}")
 SCRIPT_VERSION = "0.2.5"
+
+CONFIG_DEFAULTS = {
+    "default_profile": "/path/to/your/config.ini",
+    "format_amounts": True,
+    "format_negatives_with_parentheses": False,
+}
 
 if os.getenv("PLUTUS_CONFIG"):
     if os.sep in os.getenv("PLUTUS_CONFIG"):
@@ -131,6 +138,43 @@ def display_error(line_number, label, item):
 
 def display_warning(line_number, label, item):
     display_log("WARNING", COLOR_YELLOW, line_number, label, item)
+
+
+def validate_config():
+    user_settings = list(config.items("Settings"))
+    user_settings = sorted([item[0] for item in user_settings])
+    expected_settings = sorted(CONFIG_DEFAULTS.keys())
+
+    diff_settings = list(set(expected_settings) - set(user_settings))
+
+    config_string = StringIO()
+    config_parser = configparser.ConfigParser()
+    config_parser["Settings"] = CONFIG_DEFAULTS
+    config_parser.write(config_string)
+
+    if user_settings != expected_settings:
+        print(
+            f"""{SCRIPT_CONFIG} is missing these settings:
+
+{diff_settings}
+
+This could have happened from 1 of 2 different events:
+
+- You upgraded to a newer version of plutus which has new settings
+- You accidentally removed a setting
+
+In either case, it's no problem. Here's an example config to copy from:
+
+---
+
+{config_string.getvalue()}---
+
+Please update your config to add the missing settings."""
+        )
+
+        sys.exit(1)
+
+    return None
 
 
 def sort_by_str_date(items):
@@ -1504,11 +1548,8 @@ By default all {SCRIPT_NAME} commands will use this profile.
             path = DEFAULT_PROFILE
 
         os.makedirs(SCRIPT_DIR, exist_ok=True)
-        config["Settings"] = {
-            "default_profile": path,
-            "format_amounts": True,
-            "format_negatives_with_parentheses": False,
-        }
+        config["Settings"] = CONFIG_DEFAULTS | {"default_profile": path}
+
         with open(SCRIPT_CONFIG, "w") as file:
             config.write(file)
 
@@ -1545,6 +1586,7 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
         sys.exit()
 
     config.read(SCRIPT_CONFIG)
+    validate_config()
 
     PLUTUS_PROFILE = os.getenv(
         "PLUTUS_PROFILE", config.get("Settings", "default_profile")

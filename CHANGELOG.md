@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Added
+
+- Detect if your config file is missing settings (useful for upgrading)
 
 ## [0.2.5] - 2025-02-09
 
