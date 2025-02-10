@@ -39,7 +39,7 @@ COLOR_RESET = "\033[0m"
 
 SCRIPT_PATH = sys.argv[0]
 SCRIPT_NAME = os.path.basename(f"{SCRIPT_PATH.replace('./', '')}")
-SCRIPT_VERSION = "0.2.5"
+SCRIPT_VERSION = "0.3.0"
 
 CONFIG_DEFAULTS = {
     "default_profile": "/path/to/your/config.ini",

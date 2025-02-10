@@ -7,6 +7,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- Nothing yet
+
+## [0.3.0] - 2025-02-09
+
 ### Added
 
 - Detect if your config file is missing settings (useful for upgrading)
@@ -65,7 +69,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Everything!
 
-[Unreleased]: https://github.com/nickjj/plutus/compare/0.2.5...HEAD
+[Unreleased]: https://github.com/nickjj/plutus/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/nickjj/plutus/compare/0.2.5...0.3.0
 [0.2.5]: https://github.com/nickjj/plutus/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/nickjj/plutus/compare/0.2.3...0.2.4
 [0.2.3]: https://github.com/nickjj/plutus/compare/0.2.2...0.2.3
