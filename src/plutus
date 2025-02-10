@@ -1348,7 +1348,7 @@ Items are shown in their raw format here to see how they are structured
 def cmd_demo(args):
     categories = info_categories()
 
-    if args.init_benchmark:
+    if args.init_benchmarks:
         run_demo_benchmark(1000, categories)
         run_demo_benchmark(10000, categories)
         run_demo_benchmark(100000, categories)
@@ -1568,7 +1568,7 @@ parser_demo.add_argument(
 
 parser_demo.add_argument(
     "-b",
-    "--init-benchmark",
+    "--init-benchmarks",
     default=False,
     action="store_true",
     help="write multiple demo profiles to disk and measure their performance",

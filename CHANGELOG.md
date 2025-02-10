@@ -16,6 +16,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Moved `plutus demo --categories` to `plutus info --categories`
 - Moved `plutus demo --items` to `plutus info --items`
 - Moved `plutus lint --rules` to `plutus info --lint-rules`
+- Rename `plutus demo --init-benchmark` to `plutus demo --init-benchmarks` (both technically work now)
 
 ## [0.3.0] - 2025-02-09
 
