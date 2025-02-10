@@ -536,6 +536,14 @@ format_amounts = True
 # If False, negative amounts will be shown as -$777.77.
 # If True, negative amounts will be shown as ($777.77).
 format_negatives_with_parentheses = False
+
+# Comma separated list of words to search for when linting amounts to make
+# sure income is not accidentally a negative number.
+lint_income_words = income,refund
+
+# Comma separated list of words to search for when linting amounts to make
+# sure expenses are not accidentally a positive number.
+lint_expense_words = expense
 ```
 
 ### CSV file format

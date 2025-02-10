@@ -10,6 +10,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Detect if your config file is missing settings (useful for upgrading)
+- New config settings `lint_income_words` and `lint_expense_words` instead of hard coding English words
 
 ## [0.2.5] - 2025-02-09
 

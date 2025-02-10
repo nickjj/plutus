@@ -45,6 +45,8 @@ CONFIG_DEFAULTS = {
     "default_profile": "/path/to/your/config.ini",
     "format_amounts": True,
     "format_negatives_with_parentheses": False,
+    "lint_income_words": "income,refund",
+    "lint_expense_words": "expense",
 }
 
 if os.getenv("PLUTUS_CONFIG"):
@@ -317,15 +319,29 @@ def validate_amount(raw_value, line, raw_item):
     return errors
 
 
+def lint_word_check(setting, category):
+    words = config.get("Settings", setting)
+    words = words.split(",")
+
+    for word in words:
+        if word.lower() in category.lower():
+            return True
+
+    return False
+
+
 def validate_amount_sign(category, raw_amount, line, raw_item):
     warnings = 0
 
     category = category.lower()
 
-    if ("income" in category or "refund" in category) and raw_amount[0] == "-":
+    if lint_word_check("lint_income_words", category) and raw_amount[0] == "-":
         display_warning(line, "INCOME_IS_NEGATIVE", raw_item)
         warnings += 1
-    elif "expense" in category and raw_amount[0] != "-":
+    elif (
+        lint_word_check("lint_expense_words", category)
+        and raw_amount[0] != "-"
+    ):
         display_warning(line, "EXPENSE_IS_POSITIVE", raw_item)
         warnings += 1
 
