@@ -349,7 +349,7 @@ systems.  There's no additional packages to install.
 ```sh
 # Install it on a well known system path that will work on most systems
 sudo curl \
-  -L https://raw.githubusercontent.com/nickjj/plutus/0.3.0/src/plutus \
+  -L https://raw.githubusercontent.com/nickjj/plutus/0.4.0/src/plutus \
   -o /usr/local/bin/plutus && sudo chmod +x /usr/local/bin/plutus
 ```
 
