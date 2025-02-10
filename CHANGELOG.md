@@ -7,7 +7,15 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Added
+
+- `plutus info` command to display information (`--categories`, `--items`, `--lint-rules`)
+
+### Changed
+
+- Moved `plutus demo --categories` to `plutus info --categories`
+- Moved `plutus demo --items` to `plutus info --items`
+- Moved `plutus lint --rules` to `plutus info --lint-rules`
 
 ## [0.3.0] - 2025-02-09
 

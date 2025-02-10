@@ -141,54 +141,6 @@ class TestCLI(unittest.TestCase):
         self.assertIn("MISSING_PROFILE", stdout)
         self.assertEqual(rc, 1)
 
-    def test_demo_categories(self):
-        stdout, _stderr, _rc = call_script("demo", "--categories")
-
-        lines = stdout.splitlines()
-
-        first_category = "Business Expenses:Accountant"
-        last_category = "Tax:Refunds"
-
-        expected_categories = [first_category, last_category]
-        actual_categories = []
-
-        for line in lines:
-            if line == first_category:
-                actual_categories.append(line)
-            elif line == last_category:
-                actual_categories.append(line)
-
-        # This does check to make sure they are sorted correctly.
-        self.assertEqual(expected_categories, actual_categories)
-        self.assertNotIn("SCRIPT_NAME", stdout)
-
-    def test_demo_items(self):
-        stdout, _stderr, _rc = call_script("demo", "--items")
-
-        lines = stdout.splitlines()
-
-        first_line = '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"'  # noqa: E501
-        last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
-
-        expected_headers = "Date,Category,Amount,Method,Notes"
-        actual_headers = ""
-
-        expected_items = [first_line, last_line]
-        actual_items = []
-
-        for line in lines:
-            if line == expected_headers:
-                actual_headers = expected_headers
-
-            if line == first_line:
-                actual_items.append(line)
-            elif line == last_line:
-                actual_items.append(line)
-
-        self.assertEqual(expected_headers, actual_headers)
-        self.assertEqual(expected_items, actual_items)
-        self.assertNotIn("SCRIPT_NAME", stdout)
-
     def test_demo_items_benchmark(self):
         PLUTUS = load_plutus_module()
 
@@ -210,10 +162,6 @@ class TestCLI(unittest.TestCase):
 
         if os.path.exists(benchmark_profile_path):
             os.remove(benchmark_profile_path)
-
-    def test_lint_rules(self):
-        stdout, _stderr, _rc = call_script("lint", "--rules")
-        self.assertIn("CSV headers match", stdout)
 
     def test_lint_valid(self):
         stdout, _stderr, _rc = call_script("lint")
@@ -412,6 +360,59 @@ class TestCLI(unittest.TestCase):
             file.writelines(lines)
 
         self.assertEqual(0, rc_no_uniue_errors)
+
+    def test_info_categories(self):
+        stdout, _stderr, _rc = call_script("info", "--categories")
+
+        lines = stdout.splitlines()
+
+        first_category = "Business Expenses:Accountant"
+        last_category = "Tax:Refunds"
+
+        expected_categories = [first_category, last_category]
+        actual_categories = []
+
+        for line in lines:
+            if line == first_category:
+                actual_categories.append(line)
+            elif line == last_category:
+                actual_categories.append(line)
+
+        # This does check to make sure they are sorted correctly.
+        self.assertEqual(expected_categories, actual_categories)
+        self.assertNotIn("SCRIPT_NAME", stdout)
+
+    def test_info_items(self):
+        stdout, _stderr, _rc = call_script("info", "--items")
+
+        lines = stdout.splitlines()
+
+        first_line = '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"'  # noqa: E501
+        last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
+
+        expected_headers = "Date,Category,Amount,Method,Notes"
+        actual_headers = ""
+
+        expected_items = [first_line, last_line]
+        actual_items = []
+
+        for line in lines:
+            if line == expected_headers:
+                actual_headers = expected_headers
+
+            if line == first_line:
+                actual_items.append(line)
+            elif line == last_line:
+                actual_items.append(line)
+
+        self.assertEqual(expected_headers, actual_headers)
+        self.assertEqual(expected_items, actual_items)
+        self.assertNotIn("SCRIPT_NAME", stdout)
+
+    def test_info_lint_rules(self):
+        stdout, _stderr, _rc = call_script("info", "--lint-rules")
+
+        self.assertIn("CSV headers match", stdout)
 
     def test_show(self):
         stdout, _stderr, _rc = call_script("show")

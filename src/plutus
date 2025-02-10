@@ -324,6 +324,8 @@ def lint_word_check(setting, category):
     words = words.split(",")
 
     for word in words:
+        word = word.strip()
+
         if word.lower() in category.lower():
             return True
 
@@ -1036,27 +1038,6 @@ def cmd_edit(sort=True):
 
 
 def cmd_lint(args):
-    lint_rules = f"""
-- CSV headers match {CSV_HEADERS}
-- Items have exactly 4 commas (5 fields)
-- Item fields have no leading or trailing whitespace
-- Item fields cannot be empty except for notes
-- Dates match {REGEX_DATE}, can be parsed into a date and are not quoted
-  - {REGEX_DATE_TAX_Q} is also accepted for easy quarterly tax filtering
-- Categories match {REGEX_CATEGORY} and are quoted
-- Amounts match {REGEX_AMOUNT} and are not quoted
-- Methods match {REGEX_METHOD} and are quoted
-- Notes match {REGEX_NOTES} and are quoted if they exist
-- Items are sorted by date
-- Items are unique
-  - Set --no-unique-errors to not exit 1 if there are duplicates"""
-
-    if args.rules:
-        print("Your profile was checked with the following rules:")
-        print(lint_rules)
-
-        return None
-
     # We need to disable sorting to get accurate line references.
     result = load_profile_csv("", sort=None)
 
@@ -1135,7 +1116,8 @@ def cmd_lint(args):
         print(
             f"\n{error_count} linting {error_label} occurred, here's all of the rules to check into:"  # noqa: E501
         )
-        print(lint_rules)
+
+        print(info_lint_rules())
 
     if error_count > 0 and not args.no_errors:
         sys.exit(1)
@@ -1143,11 +1125,8 @@ def cmd_lint(args):
     return None
 
 
-def cmd_demo(args):
-    year = "2025"
-    last_year = "2024"
-
-    example_categories = [
+def info_categories():
+    categories = [
         "Business Expenses:Accountant",
         "Business Expenses:Affiliates",
         "Business Expenses:Bank",
@@ -1190,47 +1169,17 @@ def cmd_demo(args):
         "Tax:Refunds",
     ]
 
-    if not args.no_dynamic_years:
+    return categories
+
+
+def info_items(no_dynamic_years=False):
+    year = "2025"
+    last_year = "2024"
+
+    if not no_dynamic_years:
         # Demos should be up to date but not for our tests!
         year = datetime.now().year
         last_year = datetime.now().year - 1
-
-    if args.init_benchmark:
-        run_demo_benchmark(1000, example_categories)
-        run_demo_benchmark(10000, example_categories)
-        run_demo_benchmark(100000, example_categories)
-
-        print(
-            f"""
-Optionally confirm these results on your own with your shell's time command:
-
-time PLUTUS_PROFILE="{DEMO_PROFILE}-1000" plutus show --summary > /dev/null
-time PLUTUS_PROFILE="{DEMO_PROFILE}-10000" plutus show --summary > /dev/null
-time PLUTUS_PROFILE="{DEMO_PROFILE}-100000" plutus show --summary > /dev/null
-
-Remove '> /dev/null' to see the output printed, it won't take much longer,
-it redirects to /dev/null to avoid spamming your terminal output"""
-        )
-
-        return None
-
-    if args.categories:
-        print(
-            """
-
-------------------------------------------------------------------------------
-Categories to use as a starting point
-------------------------------------------------------------------------------
-- Used to help filter your items
-- Split categories into subcategories with the colon character
-- Supports as much or as little subcategory nesting as you want
-- Cannot contain these characters: " ' , (ie. Hell'o)
-- Cannot start or end with a colon (ie. :Hello, Hello: or :Hello:)
-- Cannot have 2 or more colons next to each other (ie. Hello::World)
-------------------------------------------------------------------------------
-        """
-        )
-        print("\n".join(example_categories))
 
     items = [
         f"{CSV_HEADERS}",
@@ -1268,12 +1217,87 @@ Categories to use as a starting point
         f'{year}-12-30,"Income:Affiliates:Amazon",234.56,"ACH",',
     ]
 
-    sort_by_str_date(items)
+    return items
 
-    if args.items:
+
+def info_lint_rules():
+    lint_rules = f"""
+------------------------------------------------------------------------------
+Validation rules used for linting
+------------------------------------------------------------------------------
+CSV_HEADERS_MISMATCH
+  - CSV headers match {CSV_HEADERS}
+
+PARSE_FAILURE
+  - Items have exactly 4 commas (5 fields)
+
+WHITESPACE_MISMATCH
+  - Item fields have no leading or trailing whitespace
+  - Item fields cannot be empty except for notes
+
+DATE_MISMATCH
+  - Dates match {REGEX_DATE}, can be parsed into a date and are not quoted
+  - {REGEX_DATE_TAX_Q} is also accepted for easy quarterly tax filtering
+
+CATEGORY_MISMATCH
+  - Categories match {REGEX_CATEGORY} and are quoted
+
+AMOUNT_MISMATCH
+  - Amounts match {REGEX_AMOUNT} and are not quoted
+
+METHOD_MISMATCH
+  - Methods match {REGEX_METHOD} and are quoted
+
+NOTES_MISMATCH
+  - Notes match {REGEX_NOTES} and are quoted if they exist
+
+SORT_BY_DATE_MISMATCH
+  - Items are sorted by date
+
+UNIQUENESS_MISMATCH
+  - Items are unique
+  - Set --no-unique-errors to not exit 1 if there are duplicates
+
+INCOME_IS_NEGATIVE
+  - Amounts in income related categories are negative
+
+EXPENSE_IS_POSITIVE
+  - Amounts in expense related categories are positive
+------------------------------------------------------------------------------"""  # noqa: E501
+
+    return lint_rules
+
+
+def cmd_info(args):
+    all = False
+
+    if not args.categories and not args.items and not args.lint_rules:
+        all = True
+
+    if all or args.categories:
+        print(
+            """
+------------------------------------------------------------------------------
+Categories to use as a starting point
+------------------------------------------------------------------------------
+- Used to help filter your items
+- Split categories into subcategories with the colon character
+- Supports as much or as little subcategory nesting as you want
+- Cannot contain these characters: " ' , (ie. Hell'o)
+- Cannot start or end with a colon (ie. :Hello, Hello: or :Hello:)
+- Cannot have 2 or more colons next to each other (ie. Hello::World)
+------------------------------------------------------------------------------
+"""  # noqa: E501
+        )
+        print("\n".join(info_categories()))
+
+    if all or args.items:
+        items = info_items()
+
+        sort_by_str_date(items)
+
         print(
             f"""
-
 ------------------------------------------------------------------------------
 Items are shown in their raw format here to see how they are structured
 ------------------------------------------------------------------------------
@@ -1306,7 +1330,7 @@ Items are shown in their raw format here to see how they are structured
 
 '{SCRIPT_NAME} lint' will help identify any formatting issues!
 ------------------------------------------------------------------------------
-        """
+"""
         )
 
         print("\n".join(items))
@@ -1315,14 +1339,43 @@ Items are shown in their raw format here to see how they are structured
             f"\nPretty print items with '{SCRIPT_NAME} show' and check --help for filtering / sorting options"  # noqa: E501
         )
 
+    if all or args.lint_rules:
+        print(info_lint_rules())
+
+    return
+
+
+def cmd_demo(args):
+    categories = info_categories()
+
+    if args.init_benchmark:
+        run_demo_benchmark(1000, categories)
+        run_demo_benchmark(10000, categories)
+        run_demo_benchmark(100000, categories)
+
+        print(
+            f"""
+Optionally confirm these results on your own with your shell's time command:
+
+time PLUTUS_PROFILE="{DEMO_PROFILE}-1000" plutus show --summary > /dev/null
+time PLUTUS_PROFILE="{DEMO_PROFILE}-10000" plutus show --summary > /dev/null
+time PLUTUS_PROFILE="{DEMO_PROFILE}-100000" plutus show --summary > /dev/null
+
+Remove '> /dev/null' to see the output printed, it won't take much longer,
+it redirects to /dev/null to avoid spamming your terminal output"""
+        )
+
+        return None
+
     if args.init:
+        items = info_items(args.no_dynamic_years)
+
         with open(DEMO_PROFILE, "w") as file:
             file.write("\n".join(items))
             file.write("\n")
 
             print(
-                f"""
-------------------------------------------------------------------------------
+                f"""------------------------------------------------------------------------------
 Temporarily use the demo profile
 ------------------------------------------------------------------------------
 
@@ -1343,12 +1396,11 @@ Now every {SCRIPT_NAME} command you run will use your configured profile."""
 
             print(
                 f"""
-
 ------------------------------------------------------------------------------
-Quickly reference example categories and items
+Quickly reference example categories, items and more
 ------------------------------------------------------------------------------
 
-You can run '{SCRIPT_NAME} demo --categories --items' at any time within any
+You can run '{SCRIPT_NAME} info --categories --items' at any time within any
 any profile to get a list of categories to use as inspiration as well as items
 to see how they are formatted. The above command doesn't write anything to disk."""  # noqa: E501
             )
@@ -1391,6 +1443,7 @@ parser_show = subparsers.add_parser("show", help="view your items")
 parser_insert = subparsers.add_parser("insert", help="insert a new item")
 parser_edit = subparsers.add_parser("edit", help="edit your items")
 parser_lint = subparsers.add_parser("lint", help="identify formatting issues")
+parser_info = subparsers.add_parser("info", help="view tips and examples")
 parser_demo = subparsers.add_parser("demo", help="generate sample data")
 parser_config = subparsers.add_parser("config", help="view / edit your config")
 parser_version = subparsers.add_parser("version", help="show the version")
@@ -1450,14 +1503,6 @@ parser_edit.add_argument(
 )
 
 parser_lint.add_argument(
-    "-r",
-    "--rules",
-    default=False,
-    action="store_true",
-    help="view the rules used to validate your profile",
-)
-
-parser_lint.add_argument(
     "-E",
     "--no-errors",
     default=False,
@@ -1489,6 +1534,30 @@ parser_lint.add_argument(
     help="check only the date + amount for uniqueness instead of all fields",
 )
 
+parser_info.add_argument(
+    "-c",
+    "--categories",
+    default=False,
+    action="store_true",
+    help="view example categories to use as a starting point",
+)
+
+parser_info.add_argument(
+    "-i",
+    "--items",
+    default=False,
+    action="store_true",
+    help="view example items to see how they are structured",
+)
+
+parser_info.add_argument(
+    "-l",
+    "--lint-rules",
+    default=False,
+    action="store_true",
+    help="view the rules used to validate your profile",
+)
+
 parser_demo.add_argument(
     "-n",
     "--init",
@@ -1503,22 +1572,6 @@ parser_demo.add_argument(
     default=False,
     action="store_true",
     help="write multiple demo profiles to disk and measure their performance",
-)
-
-parser_demo.add_argument(
-    "-c",
-    "--categories",
-    default=False,
-    action="store_true",
-    help="view example categories to use as a starting point",
-)
-
-parser_demo.add_argument(
-    "-i",
-    "--items",
-    default=False,
-    action="store_true",
-    help="view example items to see how they are structured",
 )
 
 # This is a hidden option to make determinstic demos (useful for testing).
@@ -1616,6 +1669,7 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
     if args.command not in (
         "config",
         "demo",
+        "info",
         "version",
     ) and not os.path.exists(PLUTUS_PROFILE):
         display_error(None, "MISSING_PROFILE", PLUTUS_PROFILE)
@@ -1630,6 +1684,8 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
             cmd_edit(sort=args.sort)
         case "lint":
             cmd_lint(args)
+        case "info":
+            cmd_info(args)
         case "demo":
             cmd_demo(args)
         case "config":

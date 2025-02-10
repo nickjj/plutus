@@ -232,26 +232,51 @@ ERROR [SORT_BY_DATE_MISMATCH]:
 
 4 linting errors occurred, here's all of the rules to check into:
 
-- CSV headers match Date,Category,Amount,Method,Notes
-- Items have exactly 4 commas (5 fields)
-- Item fields have no leading or trailing whitespace
-- Item fields cannot be empty except for notes
-- Dates match ^\d{4}-\d{2}-\d{2}$, can be parsed into a date and are not quoted
+CSV_HEADERS_MISMATCH
+  - CSV headers match Date,Category,Amount,Method,Notes
+
+PARSE_FAILURE
+  - Items have exactly 4 commas (5 fields)
+
+WHITESPACE_MISMATCH
+  - Item fields have no leading or trailing whitespace
+  - Item fields cannot be empty except for notes
+
+DATE_MISMATCH
+  - Dates match ^\d{4}-\d{2}-\d{2}$, can be parsed into a date and are not quoted
   - ^\d{4}-q(1|2|3|4)$ is also accepted for easy quarterly tax filtering
-- Categories match (:{2,}|^:|:$|,|'|\"|\\n) and are quoted
-- Amounts match ^-?[0-9]*\.[0-9]{2}$ and are not quoted
-- Methods match (,|'|:|\"|\\n) and are quoted
-- Notes match (,|:|\"|\\n) and are quoted if they exist
-- Items are sorted by date
-- Items are unique
+
+CATEGORY_MISMATCH
+  - Categories match (:{2,}|^:|:$|,|'|\"|\\n) and are quoted
+
+AMOUNT_MISMATCH
+  - Amounts match ^-?[0-9]*\.[0-9]{2}$ and are not quoted
+
+METHOD_MISMATCH
+  - Methods match (,|'|:|\"|\\n) and are quoted
+
+NOTES_MISMATCH
+  - Notes match (,|:|\"|\\n) and are quoted if they exist
+
+SORT_BY_DATE_MISMATCH
+  - Items are sorted by date
+
+UNIQUENESS_MISMATCH
+  - Items are unique
   - Set --no-unique-errors to not exit 1 if there are duplicates
+
+INCOME_IS_NEGATIVE
+  - Amounts in income related categories are negative
+
+EXPENSE_IS_POSITIVE
+  - Amounts in expense related categories are positive
 ```
 
 **Performance is "good enough", here are results from my computer built in
 2014 (yes 2014):**
 
 ```
-plutus demo --init-benchmark
+plutus demo --init-benchmarks
 
 [Generating 1000 items]
 generation took 8.73ms
@@ -399,30 +424,37 @@ options:
 ```
 
 ```
+# View tips and examples
+plutus info [-h] [-c] [-i] [-l]
+
+options:
+  -h, --help        show this help message and exit
+  -c, --categories  view example categories to use as a starting point
+  -i, --items       view example items to see how they are structured
+  -l, --lint-rules  view the rules used to validate your profile
+```
+
+```
 # Identify formatting issues
 plutus lint [-h] [-r] [-E] [-U] [-W] [-a]
 
 options:
   -h, --help            show this help message and exit
-  -r, --rules           view the rules used to validate your profile
   -E, --no-errors       don't exit with status code 1 (could be useful in CI)
   -U, --no-unique-errors
                         don't exit with status code 1 if items are duplicated
   -W, --no-warnings     don't show warnings
-  -a, --unique-amounts-date
-                        check only the date + amount for uniqueness instead of all fields
 ```
 
 ```
-# Generate sample data, run benchmarks and get inspiration on category names
-plutus demo [-h] [-n] [-b] [-c] [-i]
+# Generate sample data and run benchmarks
+plutus demo [-h] [-n] [-b]
 
 options:
   -h, --help            show this help message and exit
   -n, --init            write a demo profile to disk
-  -b, --init-benchmark  write multiple demo profiles to disk and measure their performance
-  -c, --categories      view example categories to use as a starting point
-  -i, --items           view example items to see how they are structured
+  -b, --init-benchmarks
+                        write multiple demo profiles to disk and measure their performance
 ```
 
 ```
