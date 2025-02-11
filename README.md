@@ -348,7 +348,7 @@ There's a few more options and commands but that's the core of it.
   - Printing a summary with 100,000 items takes 560ms
     - For my use case, that would be around 70 years of finance tracking
   - Printing all 12,000 item details (not a summary) takes 700ms
-  - `plutus demo --init-benchmark` will benchmark 1,000, 10,000 and 100,000 items
+  - `plutus demo --init-benchmarks` will benchmark 1,000, 10,000 and 100,000 items
 - Supports various formatting symbols depending on your locale and preference
   - Optionally show currency symbols / separators and display `()` instead of `-` for negatives
 
