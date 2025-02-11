@@ -11,6 +11,18 @@ It's a zero dependency Python script. No package managers required! Installing
 it is a matter of curling down 1 file, or perhaps a few files if you want to
 use any of the importers to help you migrate from other tools.
 
+## 🖥 Demo video
+
+[![Plutus](https://img.youtube.com/vi/mwVnKbne9v4/0.jpg)](https://www.youtube.com/watch?v=mwVnKbne9v4)
+
+The above video covers using all of Plutus' features as of 0.4.0. This project
+will evolve over time so check this readme file or the
+[changelog](./CHANGELOG.md) for the latest features and updates.
+
+With that said, the project does have core goals and ideas which are its DNA
+and vision. Most of what you see in the video will stick around in one way or
+another.
+
 ## 🧬 Vision
 
 You just want to keep track of your income from a few sources, separate out
@@ -72,8 +84,8 @@ certain, I do not want to link my bank account or provide financial details to
 a SAAS company.
 
 Ultimately I decided that I'm done making compromises on tools I use on a
-regular basis and this is what I came up with after 2 weekends of development
-based on nearly a decade of finance tracking.
+regular basis and the first version is what I came up with after 2 weekends of
+development based on nearly a decade of finance tracking.
 
 ### Name
 
