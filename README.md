@@ -77,7 +77,7 @@ always had an itch to use something different because it runs a little slow and
 it's not super convenient for adding new categories and items.
 
 I looked into Ledger but it does more than I'd like and it has a less portable
-text format.
+text format by default.
 
 As for XYZ, I'm sure there's a lot of tools out there. One thing is for
 certain, I do not want to link my bank account or provide financial details to
