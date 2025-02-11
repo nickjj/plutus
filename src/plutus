@@ -25,7 +25,7 @@ try:
 
     # Do a quick parse check to see if we can convert a float, this will fail
     # if the locale is set to C or C.UTF-8 so we can use the fallback.
-    locale.currency(1.00, grouping=True)
+    locale.currency(1.0, grouping=True)
 except (locale.Error, ValueError):
     locale_success = False
 
@@ -43,7 +43,7 @@ COLOR_RESET = "\033[0m"
 
 SCRIPT_PATH = sys.argv[0]
 SCRIPT_NAME = os.path.basename(f"{SCRIPT_PATH.replace('./', '')}")
-SCRIPT_VERSION = "0.4.0"
+SCRIPT_VERSION = "0.4.1"
 
 CONFIG_DEFAULTS = {
     "default_profile": "/path/to/your/config.ini",
