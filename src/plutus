@@ -22,7 +22,11 @@ from subprocess import Popen
 try:
     locale.setlocale(locale.LC_ALL, "")
     locale_success = True
-except locale.Error:
+
+    # Do a quick parse check to see if we can convert a float, this will fail
+    # if the locale is set to C or C.UTF-8 so we can use the fallback.
+    locale.currency(1.00, grouping=True)
+except (locale.Error, ValueError):
     locale_success = False
 
 config = configparser.ConfigParser()

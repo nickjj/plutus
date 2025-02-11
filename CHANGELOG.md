@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Fixed
+
+- Improve locale fallback to resolve currency error if your locale is `C` or `C.UTF-8`
 
 ## [0.4.0] - 2025-02-10
 
