@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Changed
+
+- Allow the `config` command to be run without validating the config so you can edit it
 
 ## [0.4.1] - 2025-02-11
 

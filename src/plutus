@@ -1659,7 +1659,6 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
         sys.exit()
 
     config.read(SCRIPT_CONFIG)
-    validate_config()
 
     PLUTUS_PROFILE = os.getenv(
         "PLUTUS_PROFILE", config.get("Settings", "default_profile")
@@ -1669,6 +1668,9 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
     # What command are we running?
     # -------------------------------------------------------------------------
     args = parser.parse_args()
+
+    if not args.command == "config":
+        validate_config()
 
     if args.command not in (
         "config",
