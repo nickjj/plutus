@@ -804,7 +804,7 @@ def cmd_show(args):
 
 
 def cmd_insert(args):
-    result = load_profile_csv("", sort=None)
+    result = load_profile_csv("", sort="date-")
 
     items_parsed = result["items"]["parsed"]
 
@@ -859,13 +859,19 @@ def cmd_insert(args):
         print("There are none since you are creating a new category")
     else:
         limit = 0
+        latest_items = []
         for item in items_parsed:
             if category == item[1]:
-                print(item)
+                latest_items.append(item)
                 limit += 1
 
             if limit >= 5:
                 break
+
+        latest_items = sort_by(latest_items, column="date")
+        for item in latest_items:
+            item[2] = f"{item[2]:.2f}"
+            print(item)
 
     # ------------------------------------------------------------------------
     # Date

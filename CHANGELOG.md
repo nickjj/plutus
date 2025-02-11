@@ -7,6 +7,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Show the latest 5 items as a preview when inserting new items (it listed the oldest 5)
+
 ### Changed
 
 - Improve error message if `EDITOR` is unset so it shows your last run command
