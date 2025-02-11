@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Changed
+
+- Improve error message if `EDITOR` is unset so it shows your last run command
 
 ## [0.4.2] - 2025-02-11
 

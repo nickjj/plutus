@@ -687,6 +687,14 @@ class TestCLI(unittest.TestCase):
         stdout, _stderr, _rc = call_script("edit")
         self.assertIn("Date,Category,Amount,Method,Notes", stdout)
 
+    def test_edit_undefined_editor(self):
+        del os.environ["EDITOR"]
+
+        stdout, _stderr, rc = call_script("edit")
+        self.assertIn("is unset", stdout)
+        self.assertIn("edit", stdout)
+        self.assertEqual(rc, 1)
+
     def test_edit_sort_without_changes(self):
         stdout, _stderr, _rc = call_script("edit", "--sort")
         self.assertEqual(stdout, "")
@@ -733,6 +741,7 @@ class TestCLI(unittest.TestCase):
 
         stdout, _stderr, rc = call_script("config", "--edit")
         self.assertIn("is unset", stdout)
+        self.assertIn("config --edit", stdout)
         self.assertEqual(rc, 1)
 
     def test_config_edit_empty_editor(self):

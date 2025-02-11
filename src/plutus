@@ -492,7 +492,7 @@ def run_demo_benchmark(n, categories):
     return items
 
 
-def open_file_in_editor(file):
+def open_file_in_editor(file, command):
     editor = os.getenv("EDITOR")
 
     if editor is None:
@@ -502,7 +502,7 @@ programs know which code editor to open by default.
 
 Temporarily try running:
 
-  EDITOR=vim {SCRIPT_NAME} config --edit
+  EDITOR=vim {SCRIPT_NAME} {command}
 
 You can persist this in your shell's rc file (bash, zsh, etc.) by adding:
 
@@ -512,7 +512,7 @@ Replace "vim" with your editor's command, such as "code", "subl", "nano", etc..
 
 Once you've saved your rc file, open a new terminal session and re-run this:
 
-  {SCRIPT_NAME} config --edit"""  # noqa: E501
+  {SCRIPT_NAME} {command}"""  # noqa: E501
         )
         sys.exit(1)
 
@@ -1014,7 +1014,7 @@ def cmd_insert(args):
 
 def cmd_edit(sort=True):
     if not sort:
-        open_file_in_editor(PLUTUS_PROFILE)
+        open_file_in_editor(PLUTUS_PROFILE, "edit")
 
         return None
 
@@ -1414,7 +1414,7 @@ to see how they are formatted. The above command doesn't write anything to disk.
 
 def cmd_config(args):
     if args.edit:
-        open_file_in_editor(SCRIPT_CONFIG)
+        open_file_in_editor(SCRIPT_CONFIG, "config --edit")
     else:
         with open(SCRIPT_CONFIG) as file:
             print(file.read().rstrip("\n"))
