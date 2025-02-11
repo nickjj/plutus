@@ -654,7 +654,7 @@ def print_csv_table(headers, items, add_columns=True, format_columns=[]):
                             value = locale.currency(value, grouping=True)
                         else:
                             # Fallback to using USD with commas.
-                            value = f"${value:,}"
+                            value = f"${value:,.2f}"
 
                             # Shift the negative sign left 1 so we have -$1.00
                             # instead of $-1.00.

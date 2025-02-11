@@ -427,6 +427,17 @@ class TestCLI(unittest.TestCase):
         self.assertIn("ACH", lines[-1])
         self.assertIn("-$440.23", lines[-1])
 
+    def test_show_invalid_locale(self):
+        os.environ["LC_ALL"] = "invalid"
+        stdout, _stderr, rc = call_script("show")
+
+        lines = stdout.splitlines()
+
+        self.assertEqual(len(lines), 35)
+        self.assertIn("| Date", stdout)
+        self.assertIn("$50.00", lines[-2])
+        self.assertEqual(0, rc)
+
     def test_show_filtered_by_q3(self):
         stdout, _stderr, _rc = call_script("show", "2025-q3")
 

@@ -10,6 +10,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Show the latest 5 items as a preview when inserting new items (it listed the oldest 5)
+- Ensure the locale fallback formatting includes 2 decimal places
 
 ### Changed
 
