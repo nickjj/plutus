@@ -7,6 +7,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- Nothing yet
+
+## [0.4.3] - 2025-02-11
+
 ### Fixed
 
 - Show the latest 5 items as a preview when inserting new items (it listed the oldest 5)
@@ -101,7 +105,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Everything!
 
-[Unreleased]: https://github.com/nickjj/plutus/compare/0.4.2...HEAD
+[Unreleased]: https://github.com/nickjj/plutus/compare/0.4.3...HEAD
+[0.4.3]: https://github.com/nickjj/plutus/compare/0.4.2...0.4.3
 [0.4.2]: https://github.com/nickjj/plutus/compare/0.4.1...0.4.2
 [0.4.1]: https://github.com/nickjj/plutus/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/nickjj/plutus/compare/0.3.0...0.4.0
