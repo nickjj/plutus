@@ -7,6 +7,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- Nothing yet
+
+## [0.4.2] - 2025-02-11
+
 ### Changed
 
 - Allow the `config` command to be run without validating the config so you can edit it
@@ -90,7 +94,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Everything!
 
-[Unreleased]: https://github.com/nickjj/plutus/compare/0.4.1...HEAD
+[Unreleased]: https://github.com/nickjj/plutus/compare/0.4.2...HEAD
+[0.4.2]: https://github.com/nickjj/plutus/compare/0.4.1...0.4.2
 [0.4.1]: https://github.com/nickjj/plutus/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/nickjj/plutus/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/nickjj/plutus/compare/0.2.5...0.3.0
