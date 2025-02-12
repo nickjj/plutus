@@ -315,6 +315,7 @@ parser.add_argument(
 parser.add_argument(
     "-i",
     "--input",
+    required=True,
     type=validate_input,
     metavar="PATH",
     help="GnuCash CSV export file",
