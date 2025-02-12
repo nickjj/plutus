@@ -8,6 +8,7 @@ import sys
 import textwrap
 import traceback
 from datetime import datetime
+from decimal import Decimal
 
 PLUTUS_HEADERS = "Date,Category,Amount,Method,Notes"
 GNUCASH_HEADERS = '"Date","Account Name","Number","Description","Full Category Path","Reconcile","Amount With Sym","Amount Num.","Rate/Price"'  # noqa: E501
@@ -106,9 +107,9 @@ def analyze_account(args):
                     # This is flipped due to the order of GnuCash's items in
                     # the file since it's double entry bookkeeping.
                     if amount[0] == "(":
-                        amount = float(amount[1:-1])
+                        amount = Decimal(amount[1:-1])
                     else:
-                        amount = -float(amount)
+                        amount = -Decimal(amount)
 
                     method = f'"{args.payment_method}"'
 
@@ -135,7 +136,7 @@ def analyze_account(args):
                     if not args.skip_debug:
                         amount_total += amount
                         print(
-                            f"DEBUG ({line_count} - ${amount_total:.2f}): {item}\n"  # noqa: E501
+                            f"DEBUG ({line_count} - {amount_total:.2f}): {item}\n"  # noqa: E501
                         )
                 except Exception:
                     validate_item(item)
