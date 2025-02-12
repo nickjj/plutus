@@ -175,7 +175,11 @@ In either case, it's no problem. Here's an example config to copy from:
 
 {config_string.getvalue()}---
 
-Please update your config to add the missing settings."""
+Please perform the following steps to add the missing items:
+
+1. Copy the missing items to your clipboard
+2. Run 'plutus config --edit' to open your config file
+3. Paste in the missing items and save the file"""
         )
 
         sys.exit(1)
@@ -1675,7 +1679,7 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
     # -------------------------------------------------------------------------
     args = parser.parse_args()
 
-    if not args.command == "config":
+    if args.command not in ("config", "version"):
         validate_config()
 
     if args.command not in (

@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Changed
+
+- Allow running the `version` command with an invalid config file
 
 ## [0.4.3] - 2025-02-11
 
