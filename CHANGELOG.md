@@ -11,6 +11,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Allow running the `version` command with an invalid config file
 - For the `demo` command, enforce either `--init` or `--init-benchmarks` are set but not both
+- Use `Decimal` instead of `float` when working with amounts
 
 ## [0.4.3] - 2025-02-11
 

@@ -14,6 +14,7 @@ import textwrap
 import time
 import traceback
 from datetime import datetime
+from decimal import Decimal
 from io import StringIO
 from itertools import tee
 from subprocess import PIPE
@@ -23,7 +24,7 @@ try:
     locale.setlocale(locale.LC_ALL, "")
     locale_success = True
 
-    # Do a quick parse check to see if we can convert a float, this will fail
+    # Do a quick parse check to see if we can convert a number, this will fail
     # if the locale is set to C or C.UTF-8 so we can use the fallback.
     locale.currency(1.0, grouping=True)
 except (locale.Error, ValueError):
@@ -584,9 +585,9 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
                 total_line_count += 1
 
                 if re.search(pattern, raw_item):
-                    # This needs to be converted to a float here so it can be
+                    # This needs to be converted to a decimal here so it can be
                     # sorted correctly.
-                    item[2] = round(float(item[2]), 2)
+                    item[2] = round(Decimal(item[2]), 2)
 
                     result["items"]["parsed"].append(item)
                     result["items"]["raw"].append(raw_item.rstrip())
@@ -599,7 +600,7 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
                     f"""Here's a few things to check for the above line:
 
 - There's {comma_count} commas, it's expected exactly 4 exist
-- A field may have an incorrect data type (ie. string instead of a float)
+- A field may have an incorrect data type (ie. string instead of a number)
 - The CSV headers are not on the first line
 - Once you address the above for good measure run '{SCRIPT_NAME} lint'
 
@@ -671,7 +672,7 @@ def print_csv_table(headers, items, add_columns=True, format_columns=[]):
 
                         item[i] = value
             elif not format_amounts:
-                # We still want to turn floats into 2 decimal place strings.
+                # We still want to turn decimals into 2 decimal place strings.
                 for column in format_columns:
                     if i == column:
                         value = f"{value:.2f}"
@@ -923,7 +924,7 @@ def cmd_insert(args):
                 continue
 
             # In case commas are used, let's silently ignore them as a favor.
-            amount = float(amount.replace(",", ""))
+            amount = Decimal(amount.replace(",", ""))
             amount = f"{amount:.2f}"
         except ValueError:
             pass
@@ -1332,7 +1333,7 @@ Items are shown in their raw format here to see how they are structured
 - Category
   - Must be wraped in double quotes
 - Amount
-  - Formatted as a positive or negative float but with 2 decimal places
+  - Formatted as a positive or negative number to 2 decimal places
   - Cannot be wrapped in double quotes
   - Cannot contain currency formatting characters such as a comma
     - There are formatting options to display them with currency symbols

@@ -435,7 +435,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("| Date", stdout)
         self.assertIn("2025-12-30", lines[-1])
         self.assertIn("Income:Affiliates:Amazon", lines[-1])
-        self.assertIn("$234.56", lines[-1])
+        self.assertIn("$234.56 ", lines[-1])
         self.assertIn("ACH", lines[-1])
         self.assertIn("-$440.23", lines[-1])
 
