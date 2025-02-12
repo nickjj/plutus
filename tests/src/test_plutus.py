@@ -195,11 +195,20 @@ class TestCLI(unittest.TestCase):
         self.assertIn("1 linting error", stdout)  # We still want the help text
         self.assertEqual(0, rc)
 
-    def test_lint_invalid_item_count(self):
-        stdout, _stderr, rc = replace_csv_line(1, "a,b,c")
+    def test_lint_invalid_item_count_too_little(self):
+        stdout, _stderr, rc = replace_csv_line(1, '2025-02-12,"A",0.01')
         self.assertIn("PARSE_FAILURE", stdout)
         self.assertIn("L2", stdout)
         self.assertIn("2 commas", stdout)
+        self.assertEqual(1, rc)
+
+    def test_lint_invalid_item_count_too_many(self):
+        stdout, _stderr, rc = replace_csv_line(
+            1, '2025-02-12,"A",0.01,"B","C","D"'
+        )
+        self.assertIn("PARSE_FAILURE", stdout)
+        self.assertIn("L2", stdout)
+        self.assertIn("5 commas", stdout)
         self.assertEqual(1, rc)
 
     def test_lint_invalid_whitespace_empty(self):

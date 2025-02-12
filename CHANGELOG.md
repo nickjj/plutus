@@ -12,6 +12,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Support using `-v` and `--version` in addition to `version` to show the version
 - Version the GnuCash import script in the same way as the main Plutus script
 
+### Fixed
+
+- Gracefully handle (with an exception) if too many valid fields exist in a CSV item
+
 ## [0.4.4] - 2025-02-12
 
 ### Changed

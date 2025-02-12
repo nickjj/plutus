@@ -584,6 +584,11 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
 
                 total_line_count += 1
 
+                # If it parses correctly and there's extra columns, we want
+                # to protect against that as soon as possible.
+                if len(item) != 5:
+                    raise Exception("FIELDS_COUNT_MISMATCH")
+
                 if re.search(pattern, raw_item):
                     # This needs to be converted to a decimal here so it can be
                     # sorted correctly.
@@ -599,7 +604,7 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
                 print(
                     f"""Here's a few things to check for the above line:
 
-- There's {comma_count} commas, it's expected exactly 4 exist
+- There's {comma_count} commas, exactly 4 are expected
 - A field may have an incorrect data type (ie. string instead of a number)
 - The CSV headers are not on the first line
 - Once you address the above for good measure run '{SCRIPT_NAME} lint'
