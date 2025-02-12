@@ -784,6 +784,16 @@ class TestCLI(unittest.TestCase):
         self.assertIn(".", stdout)
         self.assertEqual(rc, 0)
 
+    def test_version_as_flag(self):
+        stdout, _stderr, rc = call_script("--version")
+        self.assertIn(".", stdout)
+        self.assertEqual(rc, 0)
+
+    def test_plutus_with_no_args(self):
+        stdout, _stderr, rc = call_script()
+        self.assertIn("help", stdout)
+        self.assertEqual(rc, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
