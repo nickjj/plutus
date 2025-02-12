@@ -10,6 +10,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Support using `-v` and `--version` in addition to `version` to show the version
+- Version the GnuCash import script in the same way as the main Plutus script
 
 ## [0.4.4] - 2025-02-12
 
