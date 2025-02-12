@@ -1462,6 +1462,8 @@ parser_demo = subparsers.add_parser("demo", help="generate sample data")
 parser_config = subparsers.add_parser("config", help="view / edit your config")
 parser_version = subparsers.add_parser("version", help="show the version")
 
+parser_demo_group = parser_demo.add_mutually_exclusive_group(required=True)
+
 # This is an optional parameter, nargs says it can be omit or defined once.
 parser_show.add_argument(
     "pattern",
@@ -1572,7 +1574,7 @@ parser_info.add_argument(
     help="view the rules used to validate your profile",
 )
 
-parser_demo.add_argument(
+parser_demo_group.add_argument(
     "-n",
     "--init",
     default=False,
@@ -1580,7 +1582,7 @@ parser_demo.add_argument(
     help="write a demo profile to disk",
 )
 
-parser_demo.add_argument(
+parser_demo_group.add_argument(
     "-b",
     "--init-benchmarks",
     default=False,

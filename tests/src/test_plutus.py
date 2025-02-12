@@ -163,6 +163,18 @@ class TestCLI(unittest.TestCase):
         if os.path.exists(benchmark_profile_path):
             os.remove(benchmark_profile_path)
 
+    def test_demo_init_flags_are_mutually_exclusive(self):
+        _stdout, _stderr, rc = call_script("demo")
+
+        self.assertEqual(2, rc)
+
+        _stdout, stderr, rc = call_script(
+            "demo", "--init", "--init-benchmarks"
+        )
+
+        self.assertIn("not allowed with argument", stderr)
+        self.assertEqual(2, rc)
+
     def test_lint_valid(self):
         stdout, _stderr, _rc = call_script("lint")
         self.assertEqual("", stdout)
