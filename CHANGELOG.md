@@ -17,6 +17,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 - Gracefully handle (with an exception) if too many valid fields exist in a CSV item
 - Better handle the config file being partially invalid (ie. missing `[Settings]`)
 
+### Changed
+
+- Allow quarter helper filters (ie. `2025-q1`) to work with any regex pattern you supply
+
 ## [0.4.4] - 2025-02-12
 
 ### Changed

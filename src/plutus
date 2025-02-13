@@ -80,7 +80,7 @@ CSV_COLUMN_INDEX = {
 
 REGEX_WHITESPACE = r"(^$|\"\"||^\s+.*|.*\s\"*)$"
 REGEX_DATE = r"^\d{4}-\d{2}-\d{2}$"
-REGEX_DATE_TAX_Q = r"^\d{4}-q(1|2|3|4)$"
+REGEX_DATE_TAX_Q = r"^\^?\d{4}-q(1|2|3|4).*$"
 REGEX_CATEGORY = r"(:{2,}|^:|:$|,|'|\"|\\n)"
 REGEX_AMOUNT = r"^-?[0-9]*\.[0-9]{2}$"
 REGEX_METHOD = r"(,|'|:|\"|\\n)"
@@ -559,17 +559,21 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
         pattern_year = pattern_parts[0]
         pattern_q = pattern_parts[1]
 
-        match pattern_q:
-            case "q1":
-                pattern_q = "(01|02|03)"
-            case "q2":
-                pattern_q = "(04|05)"
-            case "q3":
-                pattern_q = "(06|07|08)"
-            case "q4":
-                pattern_q = "(09|10|11|12)"
+        # It's possible folks filter on something like: 2025-q1.*Income:
+        # We want to capture everything after 2025-q1. This also handles cases
+        # where 2025-q4.*Income:Hello-World is used (they used a hyphen).
+        pattern_rest = "-".join(pattern_parts[1:])[2:]
 
-        pattern = f"{pattern_year}-{pattern_q}"
+        if pattern_q.startswith("q1"):
+            pattern_q = "(01|02|03)"
+        elif pattern_q.startswith("q2"):
+            pattern_q = "(04|05)"
+        elif pattern_q.startswith("q3"):
+            pattern_q = "(06|07|08)"
+        elif pattern_q.startswith("q4"):
+            pattern_q = "(09|10|11|12)"
+
+        pattern = f"{pattern_year}-{pattern_q}{pattern_rest}"
 
     # If you're searching for 4 digits or quarters, it's probably a year so
     # lets clamp it to the start of the line to avoid picking up false
@@ -578,7 +582,8 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
     #
     # You can search for `2025\.` to get amounts of 2025.XX.
     if re.match(r"^\d{4}$", pattern) or pattern_q:
-        pattern = f"^{pattern}"
+        if pattern[0] != "^":
+            pattern = f"^{pattern}"
 
     with open(PLUTUS_PROFILE) as csvfile:
         output_1, output_2 = tee(csvfile)

@@ -468,6 +468,24 @@ class TestCLI(unittest.TestCase):
         self.assertIn("2025-06-05", lines[3])
         self.assertIn("2025-08-18", lines[9])
 
+    def test_show_filtered_by_q3_with_regex(self):
+        stdout, _stderr, _rc = call_script("show", "2025-q3.*Income:")
+
+        lines = stdout.splitlines()
+
+        self.assertEqual(len(lines), 6)
+        self.assertIn("2025-06-05", lines[3])
+        self.assertIn("2025-07-16", lines[5])
+        self.assertNotIn("Expenses:", stdout)
+
+    def test_show_filtered_by_q4_with_hyphen_no_results(self):
+        stdout, _stderr, rc = call_script("show", "2025-q4.*Income:A-B")
+
+        lines = stdout.splitlines()
+
+        self.assertEqual(len(lines), 3)
+        self.assertEqual(0, rc)
+
     def test_show_raw(self):
         stdout, _stderr, _rc = call_script("show", "--raw")
         self.assertIn("Date,Category,Amount,Method,Notes", stdout)
