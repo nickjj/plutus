@@ -47,11 +47,13 @@ SCRIPT_NAME = os.path.basename(f"{SCRIPT_PATH.replace('./', '')}")
 SCRIPT_VERSION = "0.4.4"
 
 CONFIG_DEFAULTS = {
-    "default_profile": "/path/to/your/config.ini",
-    "format_amounts": True,
-    "format_negatives_with_parentheses": False,
-    "lint_income_words": "income,refund",
-    "lint_expense_words": "expense",
+    "Settings": {
+        "default_profile": "/path/to/your/config.ini",
+        "format_amounts": True,
+        "format_negatives_with_parentheses": False,
+        "lint_income_words": "income,refund",
+        "lint_expense_words": "expense",
+    }
 }
 
 if os.getenv("PLUTUS_CONFIG"):
@@ -148,16 +150,32 @@ def display_warning(line_number, label, item):
 
 
 def validate_config():
-    user_settings = list(config.items("Settings"))
-    user_settings = sorted([item[0] for item in user_settings])
-    expected_settings = sorted(CONFIG_DEFAULTS.keys())
-
-    diff_settings = list(set(expected_settings) - set(user_settings))
-
     config_string = StringIO()
     config_parser = configparser.ConfigParser()
-    config_parser["Settings"] = CONFIG_DEFAULTS
+    config_parser["Settings"] = CONFIG_DEFAULTS["Settings"]
     config_parser.write(config_string)
+
+    if "Settings" not in config:
+        print(f"""{SCRIPT_CONFIG} is missing the [Settings] section
+
+Here is an example config file to copy from:
+
+---
+
+{config_string.getvalue()}---
+
+Please perform the following steps:
+
+1. Run 'plutus config --edit' to open your config file
+2. Add the [Settings] section and save the file"""
+        )
+        sys.exit(1)
+
+    user_settings = list(config.items("Settings"))
+    user_settings = sorted([item[0] for item in user_settings])
+    expected_settings = sorted(CONFIG_DEFAULTS["Settings"].keys())
+
+    diff_settings = list(set(expected_settings) - set(user_settings))
 
     if user_settings != expected_settings:
         print(
@@ -165,12 +183,13 @@ def validate_config():
 
 {diff_settings}
 
-This could have happened from 1 of 2 different events:
+This could have happened from 1 of 3 different events:
 
 - You upgraded to a newer version of plutus which has new settings
 - You accidentally removed a setting
+- You have extra / unsupported settings in the [Settings] section
 
-In either case, it's no problem. Here's an example config to copy from:
+In any case, it's no problem. Here's an example config to copy from:
 
 ---
 
@@ -180,7 +199,7 @@ Please perform the following steps to add the missing items:
 
 1. Copy the missing items to your clipboard
 2. Run 'plutus config --edit' to open your config file
-3. Paste in the missing items and save the file"""
+3. Paste in the missing items into the [Settings] section and save the file"""
         )
 
         sys.exit(1)
@@ -1639,7 +1658,7 @@ By default all {SCRIPT_NAME} commands will use this profile.
             path = DEFAULT_PROFILE
 
         os.makedirs(SCRIPT_DIR, exist_ok=True)
-        config["Settings"] = CONFIG_DEFAULTS | {"default_profile": path}
+        config["Settings"] = CONFIG_DEFAULTS["Settings"] | {"default_profile": path}
 
         with open(SCRIPT_CONFIG, "w") as file:
             config.write(file)
@@ -1676,12 +1695,6 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
         print(success)
         sys.exit()
 
-    config.read(SCRIPT_CONFIG)
-
-    PLUTUS_PROFILE = os.getenv(
-        "PLUTUS_PROFILE", config.get("Settings", "default_profile")
-    )
-
     # -------------------------------------------------------------------------
     # What command are we running?
     # -------------------------------------------------------------------------
@@ -1692,8 +1705,17 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
 
     args = parser.parse_args()
 
+    try:
+        config.read(SCRIPT_CONFIG)
+    except Exception:
+        validate_config()
+
     if args.command not in ("config", "version"):
         validate_config()
+
+    PLUTUS_PROFILE = os.getenv(
+        "PLUTUS_PROFILE", config.get("Settings", "default_profile")
+    )
 
     if args.command not in (
         "config",

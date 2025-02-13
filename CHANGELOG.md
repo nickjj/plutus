@@ -15,6 +15,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Gracefully handle (with an exception) if too many valid fields exist in a CSV item
+- Better handle the config file being partially invalid (ie. missing `[Settings]`)
 
 ## [0.4.4] - 2025-02-12
 

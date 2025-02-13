@@ -107,7 +107,7 @@ class TestCLI(unittest.TestCase):
 
             config = configparser.ConfigParser()
 
-            config["Settings"] = PLUTUS.CONFIG_DEFAULTS | {
+            config["Settings"] = PLUTUS.CONFIG_DEFAULTS["Settings"] | {
                 "default_profile": TEST_PROFILE
             }
 
