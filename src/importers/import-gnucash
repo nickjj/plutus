@@ -10,7 +10,7 @@ import traceback
 from datetime import datetime
 from decimal import Decimal
 
-SCRIPT_VERSION = "0.5.0"
+SCRIPT_VERSION = "0.5.1"
 
 PLUTUS_HEADERS = "Date,Category,Amount,Method,Notes"
 GNUCASH_HEADERS = '"Date","Account Name","Number","Description","Full Category Path","Reconcile","Amount With Sym","Amount Num.","Rate/Price"'  # noqa: E501
