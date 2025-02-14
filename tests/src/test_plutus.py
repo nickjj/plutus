@@ -856,7 +856,7 @@ class TestCLI(unittest.TestCase):
         stdout, _stderr, rc = call_script("alias", "nope")
 
         self.assertIn("'nope' not found", stdout)
-        self.assertIn("ibe = plutus show", stdout)
+        self.assertIn("ibe = src/plutus show", stdout)
         self.assertEqual(rc, 1)
 
     def test_version(self):
