@@ -46,6 +46,16 @@ SCRIPT_PATH = sys.argv[0]
 SCRIPT_NAME = os.path.basename(f"{SCRIPT_PATH.replace('./', '')}")
 SCRIPT_VERSION = "0.5.0"
 
+if os.getenv("PLUTUS_CONFIG"):
+    if os.sep in os.getenv("PLUTUS_CONFIG"):
+        SCRIPT_CONFIG_DIR = os.path.dirname(os.getenv("PLUTUS_CONFIG"))
+    else:
+        SCRIPT_CONFIG_DIR = os.getcwd()
+    SCRIPT_CONFIG = os.getenv("PLUTUS_CONFIG")
+else:
+    SCRIPT_CONFIG_DIR = f'{os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))}/{SCRIPT_NAME}'  # noqa: E501
+    SCRIPT_CONFIG = f"{SCRIPT_CONFIG_DIR}/config.ini"
+
 CONFIG_DEFAULTS = {
     "Settings": {
         "default_profile": "/path/to/your/config.ini",
@@ -56,16 +66,7 @@ CONFIG_DEFAULTS = {
     },
     "Aliases": {},
 }
-
-if os.getenv("PLUTUS_CONFIG"):
-    if os.sep in os.getenv("PLUTUS_CONFIG"):
-        SCRIPT_DIR = os.path.dirname(os.getenv("PLUTUS_CONFIG"))
-    else:
-        SCRIPT_DIR = os.getcwd()
-    SCRIPT_CONFIG = os.getenv("PLUTUS_CONFIG")
-else:
-    SCRIPT_DIR = f'{os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))}/{SCRIPT_NAME}'  # noqa: E501
-    SCRIPT_CONFIG = f"{SCRIPT_DIR}/config.ini"
+CONFIG_INFO_TEMPLATE = f"{SCRIPT_CONFIG_DIR}/info_template.txt"
 
 DEFAULT_PROFILE = f"{os.path.expanduser('~')}/business/{SCRIPT_NAME}.csv"
 DEMO_PROFILE = f"/tmp/{SCRIPT_NAME}.csv"
@@ -1347,8 +1348,7 @@ INCOME_IS_NEGATIVE
   - Amounts in income related categories are negative
 
 EXPENSE_IS_POSITIVE
-  - Amounts in expense related categories are positive
-------------------------------------------------------------------------------"""  # noqa: E501
+  - Amounts in expense related categories are positive"""  # noqa: E501
 
     return lint_rules
 
@@ -1356,7 +1356,13 @@ EXPENSE_IS_POSITIVE
 def cmd_info(args):
     all = False
 
-    if not args.categories and not args.items and not args.lint_rules:
+    if (
+        not args.categories
+        and not args.items
+        and not args.lint_rules
+        and not args.template_example
+        and not args.template
+    ):
         all = True
 
     if all or args.categories:
@@ -1427,7 +1433,103 @@ Items are shown in their raw format here to see how they are structured
     if all or args.lint_rules:
         print(info_lint_rules())
 
-    return
+    template_example = """
+------------------------------------------------------------------------------
+US estimated tax schedule
+------------------------------------------------------------------------------
+
+Payment period        Due date
+Jan 1st - Mar 31st    Apr 15th
+Apr 1st - May 31st    Jun 15th
+Jun 1st - Aug 31st    Sep 15th
+Sep 1st - Dec 31st    Jan 15th of the following year
+
+If the due date falls on a weekend or holiday, it is due the next business day.
+
+------------------------------------------------------------------------------
+Tax checklist
+------------------------------------------------------------------------------
+
+Questions for my accountant:
+
+- TODO
+
+Tasks to complete:
+
+- ? Wait on 1099 from X
+- ? Wait on 1099 from Y
+- ? Wait on 1099 from Z
+- ? Wait on W-2 from X
+- ? Wait on 1095-C from X
+- ? Wait on K-1 from X
+- ? Confirm all numbers listed in the next sections
+- ? Send accountant all tracked numbers and tax forms
+- ? Confirm max retirement account deposit amounts with accountant (SEP, etc.)
+- ? Receive, review and sign tax form
+- ? Deposit max retirement account amounts
+- ? Confirm max requirement account amounts
+- ? Receive and pay accountant's invoice
+- ? Pay any owed additional taxes or receive a refund
+
+Confirm already paid estimated taxes:
+
+- ? Check bank account + what was sent to accountant and confirm amounts match
+
+Confirm W-2 taxable income:
+
+- ? Check bank account + provider and confirm deposit amounts match
+
+Confirm 401k:
+
+- ? Check brokerage + provider and confirm deposit amounts match
+
+Confirm SEP:
+
+- ? Check brokerage and confirm deposit amounts match
+
+Confirm investments:
+
+- ? Check brokerage and confirm deposit amounts match
+
+Confirm self employment income:
+
+- ? Check all income categories against their payment method source
+
+Confirm self employment business expenses:
+
+- ? Check all business expense categories against their payment method source"""  # noqa: E501
+
+    # Avoid showing the example and custom templates at once. It's likely that
+    # if someone has their own template, they don't want to see the example.
+    if all or args.template_example:
+        if not all:
+            print(template_example)
+
+    if all or args.template:
+        if os.path.exists(CONFIG_INFO_TEMPLATE):
+            with open(CONFIG_INFO_TEMPLATE) as file:
+                print(f"\n{file.read()}")
+        else:
+            print(
+                f"""
+------------------------------------------------------------------------------
+Custom template output
+------------------------------------------------------------------------------
+'{CONFIG_INFO_TEMPLATE}' does not exist
+
+Create that file with 'plutus config --edit-info' and put anything you'd like.
+
+This literal "Custom template output" header is only shown here. Your template
+file will be output exactly what's in it, this lets you use custom headers.
+
+Run 'plutus info --template-example' to view the original template example.
+
+Here's the example template file:
+{template_example}
+"""
+            )
+
+    return None
 
 
 def cmd_demo(args):
@@ -1496,6 +1598,8 @@ to see how they are formatted. The above command doesn't write anything to disk.
 def cmd_config(args):
     if args.edit:
         open_file_in_editor(SCRIPT_CONFIG, "config --edit")
+    elif args.edit_info:
+        open_file_in_editor(CONFIG_INFO_TEMPLATE, "config --edit-info")
     else:
         with open(SCRIPT_CONFIG) as file:
             print(file.read().rstrip("\n"))
@@ -1627,6 +1731,8 @@ parser_alias = subparsers.add_parser(
 parser_version = subparsers.add_parser("version", help="show the version")
 
 parser_demo_group = parser_demo.add_mutually_exclusive_group(required=True)
+parser_info_group = parser_info.add_mutually_exclusive_group()
+parser_config_group = parser_config.add_mutually_exclusive_group()
 
 # This is an optional parameter, nargs ? says it can be omit or defined once.
 parser_show.add_argument(
@@ -1738,6 +1844,22 @@ parser_info.add_argument(
     help="view the rules used to validate your profile",
 )
 
+parser_info_group.add_argument(
+    "-t",
+    "--template",
+    default=False,
+    action="store_true",
+    help="view the custom template in your config directory",
+)
+
+parser_info_group.add_argument(
+    "-p",
+    "--template-example",
+    default=False,
+    action="store_true",
+    help="view the example custom template as a reference",
+)
+
 parser_demo_group.add_argument(
     "-n",
     "--init",
@@ -1763,12 +1885,20 @@ parser_demo.add_argument(
     help=argparse.SUPPRESS,
 )
 
-parser_config.add_argument(
+parser_config_group.add_argument(
     "-e",
     "--edit",
     default=False,
     action="store_true",
     help="edit your config file",
+)
+
+parser_config_group.add_argument(
+    "-i",
+    "--edit-info",
+    default=False,
+    action="store_true",
+    help="edit your custom info template",
 )
 
 # This is an optional parameter, nargs * says zero or more arguments.
@@ -1812,7 +1942,7 @@ By default all {SCRIPT_NAME} commands will use this profile.
         if not path:
             path = DEFAULT_PROFILE
 
-        os.makedirs(SCRIPT_DIR, exist_ok=True)
+        os.makedirs(SCRIPT_CONFIG_DIR, exist_ok=True)
         config["Settings"] = CONFIG_DEFAULTS["Settings"] | {
             "default_profile": path
         }

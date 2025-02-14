@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Added
+
+- `info --template` to store custom notes and checklists
 
 ## [0.5.0] - 2025-02-13
 

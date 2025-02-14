@@ -11,6 +11,7 @@ from subprocess import Popen
 PLUTUS = None
 TEST_CONFIG = "/tmp/plutus.ini"
 TEST_PROFILE = "/tmp/plutus.csv"
+TEST_CONFIG_INFO_TEMPLATE = "/tmp/info_template.txt"
 
 
 def load_plutus_module():
@@ -438,6 +439,31 @@ class TestCLI(unittest.TestCase):
 
         self.assertIn("CSV headers match", stdout)
 
+    def test_info_template_example(self):
+        stdout, _stderr, _rc = call_script("info", "--template-example")
+
+        self.assertIn("TODO", stdout)
+
+    def test_info_template_custom(self):
+        stdout, _stderr, _rc = call_script("info", "--template")
+
+        self.assertIn("Custom template output", stdout)
+
+        with open(TEST_CONFIG_INFO_TEMPLATE, "w") as file:
+            file.write("Hello")
+
+        stdout, _stderr, _rc = call_script("info", "--template")
+
+        self.assertEqual("\nHello\n", stdout)
+
+        if os.path.exists(TEST_CONFIG_INFO_TEMPLATE):
+            os.remove(TEST_CONFIG_INFO_TEMPLATE)
+
+    def test_info_all(self):
+        stdout, _stderr, _rc = call_script("info")
+
+        self.assertIn(f"'{TEST_CONFIG_INFO_TEMPLATE}' does not exist", stdout)
+
     def test_show(self):
         stdout, _stderr, _rc = call_script("show")
 
@@ -808,6 +834,23 @@ class TestCLI(unittest.TestCase):
 
         _stdout, stderr, _rc = call_script("config", "--edit")
         self.assertIn("not found", stderr)
+
+    def test_config_edit_info_template(self):
+        with open(TEST_CONFIG_INFO_TEMPLATE, "w") as file:
+            file.write("Hello")
+
+        stdout, _stderr, rc = call_script("config", "--edit-info")
+
+        self.assertIn("Hello", stdout)
+
+        if os.path.exists(TEST_CONFIG_INFO_TEMPLATE):
+            os.remove(TEST_CONFIG_INFO_TEMPLATE)
+
+    def test_config_edit_both_files(self):
+        _stdout, stderr, rc = call_script("config", "--edit", "--edit-info")
+
+        self.assertIn("not allowed with argument", stderr)
+        self.assertEqual(rc, 2)
 
     def test_alias_without_name(self):
         stdout, _stderr, rc = call_script("alias")

@@ -346,6 +346,8 @@ There's a few more options and commands but that's the core of it.
   - Items are always sorted by date on disk in the CSV file, sorting is done in memory for displaying
 - Supports creating custom aliases as shortcuts to quickly generate reports
   - This helps avoid needing to type regex filters or always passing the same flags
+- Display helpful and potentially custom information with an `info` command
+  - This could be example categories, tax payment schedules or anything you define
 - It is reasonably fast, a sorted summary for 12,000 items takes ~100ms on my 10 year old computer
   - Printing a summary with 100,000 items takes 560ms
     - For my use case, that would be around 70 years of finance tracking
@@ -437,14 +439,17 @@ options:
 ```
 
 ```
-# View tips and examples
-plutus info [-h] [-c] [-i] [-l]
+# View tips, examples and custom templates
+plutus info [-h] [-c] [-i] [-l] [-t | -p]
 
 options:
-  -h, --help        show this help message and exit
-  -c, --categories  view example categories to use as a starting point
-  -i, --items       view example items to see how they are structured
-  -l, --lint-rules  view the rules used to validate your profile
+  -h, --help            show this help message and exit
+  -c, --categories      view example categories to use as a starting point
+  -i, --items           view example items to see how they are structured
+  -l, --lint-rules      view the rules used to validate your profile
+  -t, --template        view the custom template in your config directory
+  -p, --template-example
+                        view the example custom template as a reference
 ```
 
 ```
@@ -471,12 +476,13 @@ options:
 ```
 
 ```
-# View or edit your config
-plutus config [-h] [-e]
+# View or edit your config files
+plutus config [-h] [-e | -i]
 
 options:
-  -h, --help  show this help message and exit
-  -e, --edit  edit your config file
+  -h, --help       show this help message and exit
+  -e, --edit       edit your config file
+  -i, --edit-info  edit your custom info template
 ```
 
 ```
@@ -672,6 +678,22 @@ lint_expense_words = expense
 [Aliases]
 # Add your custom aliases here.
 ```
+
+### Info template
+
+You can create a custom template file at `~/.config/plutus/info_template.txt`
+and it will be displayed when you run `plutus info --template` or `plutus info`
+if you're displaying all information.
+
+This template is to help remind you of important things like tax schedules, tax
+checklists or whatever you find important or note worthy related to your
+finances.
+
+Running that command without a custom template file will provide an example
+template to use as inspiration. You can always access this example with `plutus
+info --template-example`.
+
+You can quickly access your custom template with `plutus config --edit-info`.
 
 ### CSV file format
 
