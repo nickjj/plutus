@@ -486,6 +486,7 @@ options:
 ```
 
 ```
+# Create or run custom shortcuts
 plutus alias [-h] [NAME ...] ...
 
 positional arguments:
