@@ -53,7 +53,8 @@ CONFIG_DEFAULTS = {
         "format_negatives_with_parentheses": False,
         "lint_income_words": "income,refund",
         "lint_expense_words": "expense",
-    }
+    },
+    "Aliases": {},
 }
 
 if os.getenv("PLUTUS_CONFIG"):
@@ -149,6 +150,45 @@ def display_warning(line_number, label, item):
     display_log("WARNING", COLOR_YELLOW, line_number, label, item)
 
 
+def help_alias():
+    return """Aliases are similar to shell aliases, you can use them as shortcuts to run
+any command of your choosing. This includes plutus commands or anything!
+
+Here's an example to generate a report which demonstrates a few features:
+
+---
+
+[Aliases]
+ibe = plutus show "^$$.*(Income|Business Expenses):.*$$.*" --summary-with-items --sort category-
+
+---
+
+You can run it with 'plutus alias ibe [year] [filter]'
+
+Here is a breakdown on how it works:
+
+ibe     the name of the alias (it can be named anything, ibe = income and business expenses)
+plutus  the program you want to run (it can be anything your shell can run)
+[rest]  the program's args as you would write them directly (redirecting and pipes work too)
+
+$$ is a special value, it is a variable. You can have more than one $$. Any
+args you pass into the alias when you call it will be swapped in order for
+each $$ like printf on the shell. This lets your alias support arguments.
+
+Plutus will detect how many variables your alias has and if you're missing
+them when you run the alias, they will be replaced with empty strings.
+
+This lets you call the above alias in a few different ways, such as:
+
+plutus alias ibe                # get all items
+plutus alias ibe 2025-q4        # filtered by 2025-q4
+plutus alias ibe 2025-q4 Zelle  # filtered by 2025-q4 and Zelle
+plutus alias ibe "" Zelle       # filtered by Zelle
+
+If you want to use this alias, run 'plutus config --edit' to add it and then
+potentially adjust the income and expense category names to match yours."""  # noqa: E501
+
+
 def validate_config():
     config_string = StringIO()
     config_parser = configparser.ConfigParser()
@@ -156,7 +196,8 @@ def validate_config():
     config_parser.write(config_string)
 
     if "Settings" not in config:
-        print(f"""{SCRIPT_CONFIG} is missing the [Settings] section
+        print(
+            f"""{SCRIPT_CONFIG} is missing the [Settings] section
 
 Here is an example config file to copy from:
 
@@ -1462,6 +1503,93 @@ def cmd_config(args):
     return None
 
 
+def cmd_alias(args):
+    if "Aliases" not in config:
+        with open(SCRIPT_CONFIG, "a") as file:
+            file.write("\n[Aliases]\n")
+
+        print(
+            f"""{SCRIPT_CONFIG} was missing the [Aliases] section
+
+It has been added automatically, run 'plutus alias --help' to learn more"""
+        )
+        sys.exit(0)
+
+    aliases = list(config.items("Aliases"))
+
+    if not aliases:
+        print(f"{SCRIPT_CONFIG} has no aliases defined\n")
+        print(help_alias())
+
+        return None
+
+    # Let's do our best to provide something helpful.
+    if not args.name:
+        last_alias = "hi"
+        for k, v in aliases:
+            print(f"{k} = {v}")
+            last_alias = k
+
+        print(
+            f"\nRun an alias by passing its name as an argument, for example: plutus alias {last_alias}"  # noqa: E501
+        )
+        sys.exit(1)
+
+    # All positional args that aren't related to the alias and its vars / args.
+    args_rest = " ".join(args.args)
+
+    for k, v in aliases:
+        if not v:
+            print(
+                f"'{k}' has nothing to run, edit this alias with 'plutus config --edit'"  # noqa: E501
+            )
+            sys.exit(1)
+
+        if k == args.name[0]:
+            # Make life nicer by padding missing alias vars with empty strings.
+            # This lets you create more general purposes aliases, such as a
+            # report that's optionally filtered by a date / extra regex filter.
+            var_arg_count_diff = v.count("$$") - len(args.name[1:])
+            for i in range(var_arg_count_diff):
+                args.name.append("")
+
+            for name in args.name[1:]:
+                v = v.replace("$$", name, 1)
+
+            v = f"{v} {args_rest}"
+
+            process = Popen(
+                v,
+                stdout=PIPE,
+                stderr=PIPE,
+                shell=True,
+                text=True,
+            )
+
+            stdout, stderr = process.communicate()
+            rc = process.returncode
+
+            if rc == 0:
+                print(stdout.rstrip())
+            else:
+                print(
+                    f"'{k}' failed to run, try adjusting it with 'plutus config --edit'\n"  # noqa: E501
+                )
+                print(f"{v}\n")
+                print(stderr.rstrip())
+
+            sys.exit(rc)
+
+    print(f"'{args.name[0]}' not found, here's all of your aliases:\n")
+
+    for k, v in aliases:
+        print(f"{k} = {v}")
+
+    sys.exit(1)
+
+    return None
+
+
 def cmd_version():
     return print(SCRIPT_VERSION)
 
@@ -1490,11 +1618,17 @@ parser_lint = subparsers.add_parser("lint", help="identify formatting issues")
 parser_info = subparsers.add_parser("info", help="view tips and examples")
 parser_demo = subparsers.add_parser("demo", help="generate sample data")
 parser_config = subparsers.add_parser("config", help="view / edit your config")
+parser_alias = subparsers.add_parser(
+    "alias",
+    help="run custom shortcuts",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_alias()),
+)
 parser_version = subparsers.add_parser("version", help="show the version")
 
 parser_demo_group = parser_demo.add_mutually_exclusive_group(required=True)
 
-# This is an optional parameter, nargs says it can be omit or defined once.
+# This is an optional parameter, nargs ? says it can be omit or defined once.
 parser_show.add_argument(
     "pattern",
     nargs="?",
@@ -1637,6 +1771,22 @@ parser_config.add_argument(
     help="edit your config file",
 )
 
+# This is an optional parameter, nargs * says zero or more arguments.
+parser_alias.add_argument(
+    "name",
+    nargs="*",
+    metavar="NAME",
+    default="",
+    help="an alias name that you have defined in your config",
+)
+
+parser_alias.add_argument(
+    "args",
+    nargs=argparse.REMAINDER,
+    metavar="ARGS",
+    help="any arguments will be passed directly to your alias",
+)
+
 if __name__ == "__main__":
     # -------------------------------------------------------------------------
     # Initial profile creation and initialization
@@ -1663,7 +1813,10 @@ By default all {SCRIPT_NAME} commands will use this profile.
             path = DEFAULT_PROFILE
 
         os.makedirs(SCRIPT_DIR, exist_ok=True)
-        config["Settings"] = CONFIG_DEFAULTS["Settings"] | {"default_profile": path}
+        config["Settings"] = CONFIG_DEFAULTS["Settings"] | {
+            "default_profile": path
+        }
+        config["Aliases"] = CONFIG_DEFAULTS["Aliases"]
 
         with open(SCRIPT_CONFIG, "w") as file:
             config.write(file)
@@ -1698,7 +1851,7 @@ Example commands
 If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}"""  # noqa: E501
 
         print(success)
-        sys.exit()
+        sys.exit(0)
 
     # -------------------------------------------------------------------------
     # What command are we running?
@@ -1746,6 +1899,8 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
             cmd_demo(args)
         case "config":
             cmd_config(args)
+        case "alias":
+            cmd_alias(args)
         case "version":
             cmd_version()
         case None:

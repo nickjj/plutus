@@ -110,6 +110,9 @@ class TestCLI(unittest.TestCase):
             config["Settings"] = PLUTUS.CONFIG_DEFAULTS["Settings"] | {
                 "default_profile": TEST_PROFILE
             }
+            config["Aliases"] = PLUTUS.CONFIG_DEFAULTS["Aliases"] | {
+                "ibe": 'plutus show "^$$.*(Income|Business Expenses):.*$$.*" --summary-with-items --sort category-'  # noqa: E501
+            }
 
             os.makedirs(os.path.dirname(TEST_CONFIG), exist_ok=True)
             with open(TEST_CONFIG, "w") as file:
@@ -805,6 +808,56 @@ class TestCLI(unittest.TestCase):
 
         _stdout, stderr, _rc = call_script("config", "--edit")
         self.assertIn("not found", stderr)
+
+    def test_alias_without_name(self):
+        stdout, _stderr, rc = call_script("alias")
+        self.assertIn("for example: plutus alias ibe", stdout)
+        self.assertEqual(rc, 1)
+
+    def test_alias_ibe(self):
+        stdout, _stderr, _rc = call_script("alias", "ibe")
+
+        lines = stdout.splitlines()
+
+        self.assertEqual(len(lines), 38)
+        self.assertIn("| Income:Consulting", lines[3])
+        self.assertIn("| $3,000.00", lines[3])
+        self.assertIn("| 4", lines[3])
+        self.assertIn("| William Thatcher", lines[-1])
+        self.assertIn("| -$17.70", lines[-1])
+
+    def test_alias_ibe_with_both_args(self):
+        stdout, _stderr, _rc = call_script("alias", "ibe", "2025-q4", "Zelle")
+
+        lines = stdout.splitlines()
+
+        self.assertEqual(len(lines), 12)
+        self.assertIn("| Income:Consulting", lines[3])
+        self.assertIn("| $600.00", lines[3])
+        self.assertIn("| 1", lines[3])
+        self.assertIn("| -$24.90", lines[-1])
+        self.assertIn("| Zelle", lines[-1])
+        self.assertNotIn("| PayPal", lines[-3])
+
+    def test_alias_ibe_only_zelle(self):
+        stdout, _stderr, _rc = call_script("alias", "ibe", "", "Zelle")
+
+        lines = stdout.splitlines()
+
+        self.assertEqual(len(lines), 16)
+        self.assertIn("| Income:Consulting", lines[3])
+        self.assertIn("| $900.00", lines[3])
+        self.assertIn("| 2", lines[3])
+        self.assertIn("| $1,217.68", lines[-1])
+        self.assertIn("| Zelle", lines[-1])
+        self.assertNotIn("| SapphireCard", lines[-3])
+
+    def test_alias_invalid_name(self):
+        stdout, _stderr, rc = call_script("alias", "nope")
+
+        self.assertIn("'nope' not found", stdout)
+        self.assertIn("ibe = plutus show", stdout)
+        self.assertEqual(rc, 1)
 
     def test_version(self):
         stdout, _stderr, rc = call_script("version")

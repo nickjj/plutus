@@ -9,6 +9,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- `alias` command to quickly generate reports and run custom commands
 - Support using `-v` and `--version` in addition to `version` to show the version
 - Version the GnuCash import script in the same way as the main Plutus script
 

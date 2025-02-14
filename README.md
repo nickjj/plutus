@@ -335,15 +335,17 @@ There's a few more options and commands but that's the core of it.
 - Categories and subcategories are unrestricted along with being easy to change later
 - Flexible summary reporting options to see your data from different angles
   - For example:
-    - "How much more or less do I make during certain times of the year?"
+    - *"How much more or less do I make during certain times of the year?"*
       - `plutus show --summary date`
-    - "Show me all of my categories so I can quickly spot off by 1 character typos"
+    - *"Show me all of my categories so I can quickly spot off by 1 character typos"*
       - `plutus show --summary` (it's grouped by category by default)
-    - "Show me all income and business expenses for 2025"
+    - *"Show me all income and business expenses for 2025"*
       - `plutus show "^2025-.*(Income|Business Expenses):" --summary-with-items`
         - This filter pattern is dependent on your category names
 - Bidirectionally sort items by date (default), category, amount and more
   - Items are always sorted by date on disk in the CSV file, sorting is done in memory for displaying
+- Supports creating custom aliases as shortcuts to quickly generate reports
+  - This helps avoid needing to type regex filters or always passing the same flags
 - It is reasonably fast, a sorted summary for 12,000 items takes ~100ms on my 10 year old computer
   - Printing a summary with 100,000 items takes 560ms
     - For my use case, that would be around 70 years of finance tracking
@@ -477,6 +479,17 @@ options:
   -e, --edit  edit your config file
 ```
 
+```
+plutus alias [-h] [NAME ...] ...
+
+positional arguments:
+  NAME        an alias name that you have defined in your config
+  ARGS        any arguments will be passed directly to your alias
+
+options:
+  -h, --help  show this help message and exit
+```
+
 ### Filtering tips
 
 Filters are regular expressions. They help you narrow down your data on
@@ -505,6 +518,68 @@ by that column.
 There's also `--summary-with-items` which returns both a summary and your
 item's details. You should see your total at the bottom of both outputs be the
 same.
+
+### Level up with aliases
+
+Typing regular expressions is rarely fun but you might find yourself wanting
+to filter by certain dates and categories on a regular basis such as the case
+to answer *"show me my income and business expenses for 2025 Q4"*.
+
+You can totally do that with `plutus show "2025-q4-.*(Income|Business
+Expenses):" --summary-with-items --sort category-`, the sort flag is a nice
+touch to get your income listed before your expenses.
+
+The above command isn't too crazy but I wouldn't want to type that every
+quarter or depend on my shell's history but then have to adjust the date period.
+
+We can do better, Plutus supports adding as many or as little aliases as you
+want. Think of them like shell aliases, they're shortcuts. They also support
+arguments so you can create custom reports as needed.
+
+Here's one showing how to use variables, you can add aliases to your config
+file:
+
+```ini
+[Aliases]
+ibe = plutus show "^$$.*(Income|Business Expenses):.*$$.*" --summary-with-items --sort category-
+```
+
+- `ibe` is the name of the alias, it can be whatever you want (ibe = income and business expenses)
+- `plutus` is the command to run, it can be anything your shell can run including pipes and redirects
+- Everything else are arguments passed into the above command
+
+`$$` is a special value, it is a variable. You can have more than one `$$`, the
+above example has 2 of them. Any args you pass into the alias when you call it
+will be swapped in as strings in order for each `$$` like `printf "%s %s"
+"hello" "world"` on the shell. This lets your alias support arguments to make
+them more generic.
+
+As a quality of life enhancement, Plutus will detect how many variables your
+alias has and if you're missing them when you run the alias they will be
+replaced with empty strings.
+
+This lets you call the above alias in a few different ways, such as:
+
+```sh
+plutus alias ibe                # get all items
+plutus alias ibe 2025-q4        # filtered by 2025-q4
+plutus alias ibe 2025-q4 Zelle  # filtered by 2025-q4 and Zelle
+plutus alias ibe "" Zelle       # filtered by Zelle
+
+# Here's what each of the 4 examples expand to:
+plutus show "^.*(Income|Business Expenses):.*.*" --summary-with-items --sort category-
+plutus show "^2025-q4.*(Income|Business Expenses):.*.*" --summary-with-items --sort category-
+plutus show "^2025-q4.*(Income|Business Expenses):.*Zelle.*" --summary-with-items --sort category-
+plutus show "^.*(Income|Business Expenses):.*Zelle.*" --summary-with-items --sort category-
+```
+
+I use the above alias a lot for getting quarterly numbers.
+
+You can even create aliases to open specific directories or run any program
+accessible in your shell. This can let you create shortcuts to open up finance
+related things like maybe you have a `~/business/taxes/2025` directory with a
+bunch of notes and files that you edit elsewhere. You can use your OS' commands
+to open that directory.
 
 ### Ready to add items?
 
@@ -593,6 +668,9 @@ lint_income_words = income,refund
 # It is not case sensitive and partial matches are ok. For example if you have
 # a category name of "Business Expenses" then "expense" will match.
 lint_expense_words = expense
+
+[Aliases]
+# Add your custom aliases here.
 ```
 
 ### CSV file format
