@@ -9,6 +9,8 @@ from subprocess import PIPE
 from subprocess import Popen
 
 PLUTUS = None
+SCRIPT_PATH = "src/plutus"
+
 TEST_CONFIG = "/tmp/plutus.ini"
 TEST_PROFILE = "/tmp/plutus.csv"
 TEST_CONFIG_INFO_TEMPLATE = "/tmp/info_template.txt"
@@ -17,12 +19,12 @@ TEST_CONFIG_INFO_TEMPLATE = "/tmp/info_template.txt"
 def load_plutus_module():
     # This was an adventure to be able to load the src/plutus module without
     # it having a .py file extension.
-    module_path = "src/plutus"
+    module_path = SCRIPT_PATH
     module_name = "module_name"
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
 
-    sys.argv = ["src/plutus"]
+    sys.argv = [SCRIPT_PATH]
 
     if spec is None:
         spec = importlib.machinery.ModuleSpec(module_name, None)
@@ -41,7 +43,7 @@ def load_plutus_module():
 
 def call_script(*args):
     args = list(args)
-    args.insert(0, "src/plutus")
+    args.insert(0, SCRIPT_PATH)
 
     # Remove None items from the args.
     args = [arg for arg in args if arg is not None]
@@ -112,7 +114,7 @@ class TestCLI(unittest.TestCase):
                 "default_profile": TEST_PROFILE
             }
             config["Aliases"] = PLUTUS.CONFIG_DEFAULTS["Aliases"] | {
-                "ibe": 'src/plutus show "^$$.*(Income|Business Expenses):.*$$.*" --summary-with-items --sort category-'  # noqa: E501
+                "ibe": f'{SCRIPT_PATH} show "^$$.*(Income|Business Expenses):.*$$.*" --summary-with-items --sort category-'  # noqa: E501
             }
 
             os.makedirs(os.path.dirname(TEST_CONFIG), exist_ok=True)
@@ -899,7 +901,7 @@ class TestCLI(unittest.TestCase):
         stdout, _stderr, rc = call_script("alias", "nope")
 
         self.assertIn("'nope' not found", stdout)
-        self.assertIn("ibe = src/plutus show", stdout)
+        self.assertIn(f"ibe = {SCRIPT_PATH} show", stdout)
         self.assertEqual(rc, 1)
 
     def test_version(self):

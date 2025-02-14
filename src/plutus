@@ -152,41 +152,41 @@ def display_warning(line_number, label, item):
 
 
 def help_alias():
-    return """Aliases are similar to shell aliases, you can use them as shortcuts to run
-any command of your choosing. This includes plutus commands or anything!
+    return f"""Aliases are similar to shell aliases, you can use them as shortcuts to run
+any command of your choosing. This includes {SCRIPT_NAME} commands or anything!
 
 Here's an example to generate a report which demonstrates a few features:
 
 ---
 
 [Aliases]
-ibe = plutus show "^$$.*(Income|Business Expenses):.*$$.*" --summary-with-items --sort category-
+ibe = {SCRIPT_NAME} show "^$$.*(Income|Business Expenses):.*$$.*" --summary-with-items --sort category-
 
 ---
 
-You can run it with 'plutus alias ibe [year] [filter]'
+You can run it with '{SCRIPT_NAME} alias ibe [year] [filter]'
 
 Here is a breakdown on how it works:
 
 ibe     the name of the alias (it can be named anything, ibe = income and business expenses)
-plutus  the program you want to run (it can be anything your shell can run)
+{SCRIPT_NAME}  the program you want to run (it can be anything your shell can run)
 [rest]  the program's args as you would write them directly (redirecting and pipes work too)
 
 $$ is a special value, it is a variable. You can have more than one $$. Any
 args you pass into the alias when you call it will be swapped in order for
 each $$ like printf on the shell. This lets your alias support arguments.
 
-Plutus will detect how many variables your alias has and if you're missing
-them when you run the alias, they will be replaced with empty strings.
+{SCRIPT_NAME.capitalize()} will detect how many variables your alias has and if you're missing
+them when you run the alias they will be replaced with empty strings.
 
 This lets you call the above alias in a few different ways, such as:
 
-plutus alias ibe                # get all items
-plutus alias ibe 2025-q4        # filtered by 2025-q4
-plutus alias ibe 2025-q4 Zelle  # filtered by 2025-q4 and Zelle
-plutus alias ibe "" Zelle       # filtered by Zelle
+{SCRIPT_NAME} alias ibe                # get all items
+{SCRIPT_NAME} alias ibe 2025-q4        # filtered by 2025-q4
+{SCRIPT_NAME} alias ibe 2025-q4 Zelle  # filtered by 2025-q4 and Zelle
+{SCRIPT_NAME} alias ibe "" Zelle       # filtered by Zelle
 
-If you want to use this alias, run 'plutus config --edit' to add it and then
+If you want to use this alias, run '{SCRIPT_NAME} config --edit' to add it and then
 potentially adjust the income and expense category names to match yours."""  # noqa: E501
 
 
@@ -208,7 +208,7 @@ Here is an example config file to copy from:
 
 Please perform the following steps:
 
-1. Run 'plutus config --edit' to open your config file
+1. Run '{SCRIPT_NAME} config --edit' to open your config file
 2. Add the [Settings] section and save the file"""
         )
         sys.exit(1)
@@ -227,7 +227,7 @@ Please perform the following steps:
 
 This could have happened from 1 of 3 different events:
 
-- You upgraded to a newer version of plutus which has new settings
+- You upgraded to a newer version of {SCRIPT_NAME} which has new settings
 - You accidentally removed a setting
 - You have extra / unsupported settings in the [Settings] section
 
@@ -240,7 +240,7 @@ In any case, it's no problem. Here's an example config to copy from:
 Please perform the following steps to add the missing items:
 
 1. Copy the missing items to your clipboard
-2. Run 'plutus config --edit' to open your config file
+2. Run '{SCRIPT_NAME} config --edit' to open your config file
 3. Paste in the missing items into the [Settings] section and save the file"""
         )
 
@@ -553,7 +553,9 @@ def run_demo_benchmark(n, categories):
     stdout, _stderr = process.communicate()
 
     duration = (time.time() - start_time) * 1000
-    print(f"'plutus show --summary' finished reporting in {duration:.2f}ms")
+    print(
+        f"'{SCRIPT_NAME} show --summary' finished reporting in {duration:.2f}ms"  # noqa: E501
+    )
 
     return items
 
@@ -1517,16 +1519,16 @@ Custom template output
 ------------------------------------------------------------------------------
 '{CONFIG_INFO_TEMPLATE}' does not exist
 
-Create that file with 'plutus config --edit-info' and put anything you'd like.
+Create that file with '{SCRIPT_NAME} config --edit-info' and put anything you'd like.
 
 This literal "Custom template output" header is only shown here. Your template
 file will be output exactly what's in it, this lets you use custom headers.
 
-Run 'plutus info --template-example' to view the original template example.
+Run '{SCRIPT_NAME} info --template-example' to view the original template example.
 
 Here's the example template file:
 {template_example}
-"""
+"""  # noqa: E501
             )
 
     return None
@@ -1544,12 +1546,12 @@ def cmd_demo(args):
             f"""
 Optionally confirm these results on your own with your shell's time command:
 
-time PLUTUS_PROFILE="{DEMO_PROFILE}-1000" plutus show --summary > /dev/null
-time PLUTUS_PROFILE="{DEMO_PROFILE}-10000" plutus show --summary > /dev/null
-time PLUTUS_PROFILE="{DEMO_PROFILE}-100000" plutus show --summary > /dev/null
+time PLUTUS_PROFILE="{DEMO_PROFILE}-1000" {SCRIPT_NAME} show --summary > /dev/null
+time PLUTUS_PROFILE="{DEMO_PROFILE}-10000" {SCRIPT_NAME} show --summary > /dev/null
+time PLUTUS_PROFILE="{DEMO_PROFILE}-100000" {SCRIPT_NAME} show --summary > /dev/null
 
 Remove '> /dev/null' to see the output printed, it won't take much longer,
-it redirects to /dev/null to avoid spamming your terminal output"""
+it redirects to /dev/null to avoid spamming your terminal output"""  # noqa: E501
         )
 
         return None
@@ -1615,7 +1617,7 @@ def cmd_alias(args):
         print(
             f"""{SCRIPT_CONFIG} was missing the [Aliases] section
 
-It has been added automatically, run 'plutus alias --help' to learn more"""
+It has been added automatically, run '{SCRIPT_NAME} alias --help' to learn more"""  # noqa: E501
         )
         sys.exit(0)
 
@@ -1635,7 +1637,7 @@ It has been added automatically, run 'plutus alias --help' to learn more"""
             last_alias = k
 
         print(
-            f"\nRun an alias by passing its name as an argument, for example: plutus alias {last_alias}"  # noqa: E501
+            f"\nRun an alias by passing its name as an argument, for example: {SCRIPT_NAME} alias {last_alias}"  # noqa: E501
         )
         sys.exit(1)
 
@@ -1645,7 +1647,7 @@ It has been added automatically, run 'plutus alias --help' to learn more"""
     for k, v in aliases:
         if not v:
             print(
-                f"'{k}' has nothing to run, edit this alias with 'plutus config --edit'"  # noqa: E501
+                f"'{k}' has nothing to run, edit this alias with '{SCRIPT_NAME} config --edit'"  # noqa: E501
             )
             sys.exit(1)
 
@@ -1677,7 +1679,7 @@ It has been added automatically, run 'plutus alias --help' to learn more"""
                 print(stdout.rstrip())
             else:
                 print(
-                    f"'{k}' failed to run, try adjusting it with 'plutus config --edit'\n"  # noqa: E501
+                    f"'{k}' failed to run, try adjusting it with '{SCRIPT_NAME} config --edit'\n"  # noqa: E501
                 )
                 print(f"{v}\n")
                 print(stderr.rstrip())
@@ -1706,10 +1708,10 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=textwrap.dedent(
         f"""\
-    Plutus is a tool to help track your income and expenses.
+    {SCRIPT_NAME.capitalize()} is a tool to help track your income and expenses.
 
     Please report issues or feedback at https://github.com/nickjj/{SCRIPT_NAME}
-    """
+    """  # noqa: E501
     ),
 )
 
