@@ -490,6 +490,35 @@ options:
   -h, --help  show this help message and exit
 ```
 
+### Ready to add items?
+
+There's a couple of options depending on your preference.
+
+#### Using your code editor
+
+The `plutus edit` command will open your profile in your code editor and now
+you can add them however you see fit. Keep in mind this file is expected to be
+sorted by date but manually inserting old items from years ago could be error
+prone so there's a separate `plutus edit --sort` command you can run to
+auto-sort the items for you.
+
+What I like to do is always add items at the end of the file, and I even add in
+a couple of line breaks before my new items so I know what's new with no
+confusion as I'm editing. Then I save the file as is when I'm done.
+
+The `plutus edit --sort` command auto-sorts them for you, removes empty lines
+and shows you a diff.
+
+#### Using Plutus
+
+The `plutus insert` command will start an interactive prompt with you. It will
+actively verify the data you enter and do its best to make adding new items
+quick and painless.
+
+I use this method when adding 1 item at a time. For multiple items I tend to
+use my code editor but it really depends on your preference. Both options
+exist.
+
 ### Filtering tips
 
 Filters are regular expressions. They help you narrow down your data on
@@ -580,35 +609,6 @@ accessible in your shell. This can let you create shortcuts to open up finance
 related things like maybe you have a `~/business/taxes/2025` directory with a
 bunch of notes and files that you edit elsewhere. You can use your OS' commands
 to open that directory.
-
-### Ready to add items?
-
-There's a couple of options depending on your preference.
-
-#### Using your code editor
-
-The `plutus edit` command will open your profile in your code editor and now
-you can add them however you see fit. Keep in mind this file is expected to be
-sorted by date but manually inserting old items from years ago could be error
-prone so there's a separate `plutus edit --sort` command you can run to
-auto-sort the items for you.
-
-What I like to do is always add items at the end of the file, and I even add in
-a couple of line breaks before my new items so I know what's new with no
-confusion as I'm editing. Then I save the file as is when I'm done.
-
-The `plutus edit --sort` command auto-sorts them for you, removes empty lines
-and shows you a diff.
-
-#### Using Plutus
-
-The `plutus insert` command will start an interactive prompt with you. It will
-actively verify the data you enter and do its best to make adding new items
-quick and painless.
-
-I use this method when adding 1 item at a time. For multiple items I tend to
-use my code editor but it really depends on your preference. Both options
-exist.
 
 ### Environment variables
 
