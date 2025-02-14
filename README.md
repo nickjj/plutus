@@ -384,7 +384,7 @@ That will create a separate demo profile that you can start using immediately
 to get a feel for using this tool without spending time importing or manually
 inputting your data.
 
-The section below on using Plutus covers how to add items.
+The section below on using Plutus covers how everything works.
 
 ## ⚙️  Using Plutus
 
@@ -419,11 +419,10 @@ options:
 
 ```
 # Insert new items
-plutus insert [-h] [-s]
+plutus insert [-h]
 
 options:
   -h, --help  show this help message and exit
-  -s,
 ```
 
 ```
@@ -460,7 +459,7 @@ options:
 
 ```
 # Generate sample data and run benchmarks
-plutus demo [-h] [-n] [-b]
+plutus demo [-h] (-n | -b)
 
 options:
   -h, --help            show this help message and exit
