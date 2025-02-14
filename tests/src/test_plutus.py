@@ -819,6 +819,8 @@ class TestCLI(unittest.TestCase):
 
         lines = stdout.splitlines()
 
+        print(stdout)
+
         self.assertEqual(len(lines), 38)
         self.assertIn("| Income:Consulting", lines[3])
         self.assertIn("| $3,000.00", lines[3])
@@ -830,6 +832,8 @@ class TestCLI(unittest.TestCase):
         stdout, _stderr, _rc = call_script("alias", "ibe", "2025-q4", "Zelle")
 
         lines = stdout.splitlines()
+
+        print(stdout)
 
         self.assertEqual(len(lines), 12)
         self.assertIn("| Income:Consulting", lines[3])
@@ -843,6 +847,8 @@ class TestCLI(unittest.TestCase):
         stdout, _stderr, _rc = call_script("alias", "ibe", "", "Zelle")
 
         lines = stdout.splitlines()
+
+        print(stdout)
 
         self.assertEqual(len(lines), 16)
         self.assertIn("| Income:Consulting", lines[3])
