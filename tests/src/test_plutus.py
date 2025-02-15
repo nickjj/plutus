@@ -147,6 +147,10 @@ class TestCLI(unittest.TestCase):
         self.assertIn("MISSING_PROFILE", stdout)
         self.assertEqual(rc, 1)
 
+    def test_demo_help(self):
+        stdout, _stderr, _rc = call_script("demo", "--help")
+        self.assertIn("Generate sample data", stdout)
+
     def test_demo_items_benchmark(self):
         PLUTUS = load_plutus_module()
 
@@ -180,6 +184,10 @@ class TestCLI(unittest.TestCase):
 
         self.assertIn("not allowed with argument", stderr)
         self.assertEqual(2, rc)
+
+    def test_lint_help(self):
+        stdout, _stderr, _rc = call_script("lint", "--help")
+        self.assertIn("Identify formatting issues", stdout)
 
     def test_lint_valid(self):
         stdout, _stderr, _rc = call_script("lint")
@@ -388,6 +396,10 @@ class TestCLI(unittest.TestCase):
 
         self.assertEqual(0, rc_no_uniue_errors)
 
+    def test_info_help(self):
+        stdout, _stderr, _rc = call_script("info", "--help")
+        self.assertIn("View examples, tips and templates", stdout)
+
     def test_info_categories(self):
         stdout, _stderr, _rc = call_script("info", "--categories")
 
@@ -465,6 +477,10 @@ class TestCLI(unittest.TestCase):
         stdout, _stderr, _rc = call_script("info")
 
         self.assertIn(f"'{TEST_CONFIG_INFO_TEMPLATE}' does not exist", stdout)
+
+    def test_show_help(self):
+        stdout, _stderr, _rc = call_script("show", "--help")
+        self.assertIn("View your items", stdout)
 
     def test_show(self):
         stdout, _stderr, _rc = call_script("show")
@@ -764,6 +780,10 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("-$1,600.00", lines[7])
         self.assertIn("($1,600.00)", lines[7])
 
+    def test_edit_help(self):
+        stdout, _stderr, _rc = call_script("edit", "--help")
+        self.assertIn("favorite code editor", stdout)
+
     def test_edit(self):
         stdout, _stderr, _rc = call_script("edit")
         self.assertIn("Date,Category,Amount,Method,Notes", stdout)
@@ -805,6 +825,10 @@ class TestCLI(unittest.TestCase):
         self.assertIn("@@ -1,4 +1,4 @@", stdout)
         self.assertEqual(lines[0].strip(), expected_headers.strip())
         self.assertEqual([lines[1].strip(), lines[-1].strip()], expected_items)
+
+    def test_config_help(self):
+        stdout, _stderr, _rc = call_script("config", "--help")
+        self.assertIn("a number of config files", stdout)
 
     def test_config(self):
         stdout, _stderr, _rc = call_script("config")
@@ -859,6 +883,10 @@ class TestCLI(unittest.TestCase):
         self.assertIn("for example: plutus alias ibe", stdout)
         self.assertEqual(rc, 1)
 
+    def test_alias_help(self):
+        stdout, _stderr, _rc = call_script("alias", "--help")
+        self.assertIn("similar to shell aliases", stdout)
+
     def test_alias_ibe(self):
         stdout, _stderr, _rc = call_script("alias", "ibe")
 
@@ -903,6 +931,10 @@ class TestCLI(unittest.TestCase):
         self.assertIn("'nope' not found", stdout)
         self.assertIn(f"ibe = {SCRIPT_PATH} show", stdout)
         self.assertEqual(rc, 1)
+
+    def test_version_help(self):
+        stdout, _stderr, _rc = call_script("version", "--help")
+        self.assertIn("Show this tool's version", stdout)
 
     def test_version(self):
         stdout, _stderr, rc = call_script("version")

@@ -392,7 +392,9 @@ The section below on using Plutus covers how everything works.
 
 ## ⚙️  Using Plutus
 
-For actively using the tool, I encourage you to run `plutus --help`.
+For actively using the tool, I encourage you to run `plutus --help`. One of its
+goals is to provide enough information to get you going on the command line.
+The docs can be seen as a supplement with a little more context.
 
 There is also quite a bit of help text when running the tool for the first
 time. After the onboarding and demo commands it adheres to the Unix
@@ -400,101 +402,22 @@ philosophy of no news is good news.
 
 ### Commands
 
-Here's a list of commands and flags to get a quick idea of what's available:
+Here's a list of `plutus` commands to get a quick idea of what's available:
 
 ```
-# View items
-plutus show [-h] [-s FIELD] [-m [COLUMN]] [-w [COLUMN]] [-r] [PATTERN]
-
 positional arguments:
-  PATTERN               optionally filter results by a regex pattern
+  show                  View your items
+  insert                Insert a new item
+  edit                  Edit items in your favorite code editor
+  lint                  Identify formatting issues
+  info                  View examples, tips and templates
+  demo                  Generate sample data and benchmarks
+  config                View and edit your config files
+  alias                 Run custom shortcuts
+  version               Show the version (--version and -v work too)
 
 options:
-  -h, --help            show this help message and exit
-  -s FIELD, --sort FIELD
-                        bidirectionally sort results by a specific field
-  -m [COLUMN], --summary [COLUMN]
-                        aggregate amount totals and item counts for a specific column type
-  -w [COLUMN], --summary-with-items [COLUMN]
-                        view both a summary of column types and items
-  -r, --raw             view your profile's lines without any processing except filtering
-
-```
-
-```
-# Insert new items
-plutus insert [-h]
-
-options:
-  -h, --help  show this help message and exit
-```
-
-```
-# Edit or insert items in your code editor
-plutus edit [-h] [-s]
-
-options:
-  -h, --help  show this help message and exit
-  -s, --sort  sort your profile and show a diff if anything changed
-```
-
-```
-# View tips, examples and custom templates
-plutus info [-h] [-c] [-i] [-l] [-t | -p]
-
-options:
-  -h, --help            show this help message and exit
-  -c, --categories      view example categories to use as a starting point
-  -i, --items           view example items to see how they are structured
-  -l, --lint-rules      view the rules used to validate your profile
-  -t, --template        view the custom template in your config directory
-  -p, --template-example
-                        view the example custom template as a reference
-```
-
-```
-# Identify formatting issues
-plutus lint [-h] [-r] [-E] [-U] [-W] [-a]
-
-options:
-  -h, --help            show this help message and exit
-  -E, --no-errors       don't exit with status code 1 (could be useful in CI)
-  -U, --no-unique-errors
-                        don't exit with status code 1 if items are duplicated
-  -W, --no-warnings     don't show warnings
-```
-
-```
-# Generate sample data and run benchmarks
-plutus demo [-h] (-n | -b)
-
-options:
-  -h, --help            show this help message and exit
-  -n, --init            write a demo profile to disk
-  -b, --init-benchmarks
-                        write multiple demo profiles to disk and measure their performance
-```
-
-```
-# View or edit your config files
-plutus config [-h] [-e | -i]
-
-options:
-  -h, --help       show this help message and exit
-  -e, --edit       edit your config file
-  -i, --edit-info  edit your custom info template
-```
-
-```
-# Create or run custom shortcuts
-plutus alias [-h] [NAME ...] ...
-
-positional arguments:
-  NAME        an alias name that you have defined in your config
-  ARGS        any arguments will be passed directly to your alias
-
-options:
-  -h, --help  show this help message and exit
+  -h, --help            Show this help message and exit
 ```
 
 ### Ready to add items?

@@ -151,6 +151,81 @@ def display_warning(line_number, label, item):
     display_log("WARNING", COLOR_YELLOW, line_number, label, item)
 
 
+def help_show():
+    return f"""View your items in a number of different ways.
+
+Here's a few examples:
+
+# Filter items with any regex pattern.
+{SCRIPT_NAME} show 2025
+{SCRIPT_NAME} show 2025-q4
+{SCRIPT_NAME} show "Business Expenses:"
+{SCRIPT_NAME} show "plutus show "^2025-.*(Income|Business Expenses):"
+
+# Show your raw data straight from the CSV file.
+{SCRIPT_NAME} show 2025 --raw
+
+# Show aggregate stats grouped by a column with or without your items.
+{SCRIPT_NAME} show 2025 --summary [date|category|amount|method|notes]
+{SCRIPT_NAME} show 2025 --summary-with-items
+
+# Sort by a specific field in either direction (defaults to date).
+{SCRIPT_NAME} show 2025 --sort [date|category|amount|method|notes]
+{SCRIPT_NAME} show 2025 --sort amount
+{SCRIPT_NAME} show 2025 --sort amount-
+
+You can combine these flags however you see fit. If you start finding yourself
+using the same filters and flags a lot, you can create an alias to shorten it.
+"""
+
+
+def help_insert():
+    return "Insert a new item interactively."
+
+
+def help_edit():
+    return "Edit items in your favorite code editor."
+
+
+def help_lint():
+    return "Identify formatting issues."
+
+
+def help_info():
+    return f"""View examples, tips and templates.
+
+The --categories, --items and --lint-rules flags will provide information that
+you can use to help understand what each of those things are.
+
+You can store a custom template in: {CONFIG_INFO_TEMPLATE}
+
+This template can have whatever you want in there such as tax schedules, tax
+checklists or any notes that are immportant to you. View it with
+'{SCRIPT_NAME} info --template` or omit the flag to show everything.
+
+Edit your template by running: {SCRIPT_NAME} config --edit-info
+"""
+
+
+def help_demo():
+    return "Generate sample data and benchmarks."
+
+
+def help_config():
+    return f"""{SCRIPT_NAME.capitalize()} has a number of config files, here's your configured paths:
+
+Config directory    {SCRIPT_CONFIG_DIR}
+Config file path    {SCRIPT_CONFIG}
+Info template path  {CONFIG_INFO_TEMPLATE}
+
+You can customize your config file path with the PLUTUS_CONFIG environment
+variable such as running: PLUTUS_CONFIG=/tmp/plutus.ini {SCRIPT_NAME} show
+
+The config directory path is determined from your config file path and the
+info template path will always be relative to the config directory.
+"""  # noqa: E501
+
+
 def help_alias():
     return f"""Aliases are similar to shell aliases, you can use them as shortcuts to run
 any command of your choosing. This includes {SCRIPT_NAME} commands or anything!
@@ -188,6 +263,10 @@ This lets you call the above alias in a few different ways, such as:
 
 If you want to use this alias, run '{SCRIPT_NAME} config --edit' to add it and then
 potentially adjust the income and expense category names to match yours."""  # noqa: E501
+
+
+def help_version():
+    return "Show this tool's version, also --version and -v are supported."
 
 
 def validate_config():
@@ -1715,22 +1794,62 @@ parser = argparse.ArgumentParser(
     ),
 )
 
-subparsers = parser.add_subparsers(help="subcommand help", dest="command")
+subparsers = parser.add_subparsers(dest="command")
 
-parser_show = subparsers.add_parser("show", help="view your items")
-parser_insert = subparsers.add_parser("insert", help="insert a new item")
-parser_edit = subparsers.add_parser("edit", help="edit your items")
-parser_lint = subparsers.add_parser("lint", help="identify formatting issues")
-parser_info = subparsers.add_parser("info", help="view tips and examples")
-parser_demo = subparsers.add_parser("demo", help="generate sample data")
-parser_config = subparsers.add_parser("config", help="view / edit your config")
+parser_show = subparsers.add_parser(
+    "show",
+    help="View your items",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_show()),
+)
+parser_insert = subparsers.add_parser(
+    "insert",
+    help="Insert a new item",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_insert()),
+)
+parser_edit = subparsers.add_parser(
+    "edit",
+    help="Edit items in your favorite code editor",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_edit()),
+)
+parser_lint = subparsers.add_parser(
+    "lint",
+    help="Identify formatting issues",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_lint()),
+)
+parser_info = subparsers.add_parser(
+    "info",
+    help="View examples, tips and templates",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_info()),
+)
+parser_demo = subparsers.add_parser(
+    "demo",
+    help="Generate sample data and benchmarks",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_demo()),
+)
+parser_config = subparsers.add_parser(
+    "config",
+    help="View and edit your config files",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_config()),
+)
 parser_alias = subparsers.add_parser(
     "alias",
-    help="run custom shortcuts",
+    help="Run custom shortcuts",
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=textwrap.dedent(help_alias()),
 )
-parser_version = subparsers.add_parser("version", help="show the version")
+parser_version = subparsers.add_parser(
+    "version",
+    help="Show the version (--version and -v work too)",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_version()),
+)
 
 parser_demo_group = parser_demo.add_mutually_exclusive_group(required=True)
 parser_info_group = parser_info.add_mutually_exclusive_group()
