@@ -1851,6 +1851,7 @@ parser_version = subparsers.add_parser(
     description=textwrap.dedent(help_version()),
 )
 
+parser_show_group = parser_show.add_mutually_exclusive_group()
 parser_demo_group = parser_demo.add_mutually_exclusive_group(required=True)
 parser_info_group = parser_info.add_mutually_exclusive_group()
 parser_config_group = parser_config.add_mutually_exclusive_group()
@@ -1873,7 +1874,7 @@ parser_show.add_argument(
     help="bidirectionally sort results by a specific field",
 )
 
-parser_show.add_argument(
+parser_show_group.add_argument(
     "-m",
     "--summary",
     nargs="?",
@@ -1883,7 +1884,7 @@ parser_show.add_argument(
     help="aggregate amount totals and item counts for a specific column type",
 )
 
-parser_show.add_argument(
+parser_show_group.add_argument(
     "-w",
     "--summary-with-items",
     nargs="?",

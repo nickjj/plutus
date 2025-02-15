@@ -780,6 +780,14 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("-$1,600.00", lines[7])
         self.assertIn("($1,600.00)", lines[7])
 
+    def test_show_both_summaries(self):
+        _stdout, stderr, rc = call_script(
+            "show", "--summary", "--summary-with-items"
+        )
+
+        self.assertIn("not allowed with argument", stderr)
+        self.assertEqual(rc, 2)
+
     def test_edit_help(self):
         stdout, _stderr, _rc = call_script("edit", "--help")
         self.assertIn("favorite code editor", stdout)

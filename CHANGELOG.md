@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Changed
+
+- For the `show` command, either `--summary` or `--summaey-with-items` can be set but not both
 
 ## [0.5.2] - 2025-02-14
 
