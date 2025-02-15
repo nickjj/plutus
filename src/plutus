@@ -770,7 +770,7 @@ Here's the stack trace:
     return result
 
 
-def print_csv_table(headers, items, add_columns=True, format_columns=[]):
+def print_csv_table(headers, items, table_type, format_columns=[]):
     format_amounts = config.getboolean("Settings", "format_amounts")
     format_negatives = config.getboolean(
         "Settings", "format_negatives_with_parentheses"
@@ -779,22 +779,23 @@ def print_csv_table(headers, items, add_columns=True, format_columns=[]):
     # Calculate maximum length for each column (including the headers).
     column_widths = [len(header) for header in headers]
 
-    matched_line_count = 0
+    id = 0
     amount_total = 0
     items_total = 0
 
     # Calculate the max length for each column in the data items.
     for item in items:
-        # We always want the id column to be added.
-        matched_line_count += 1
-        item.insert(0, matched_line_count)
+        # Dynamically adjust columns depending on what's being output.
+        if table_type == "items":
+            id += 1
+            item.insert(0, id)
 
-        # We only want to do this when we're displaying items (not a summary).
-        if add_columns:
             amount_total += item[3]
-
             item.insert(4, round(amount_total, 2))
-        else:
+        elif table_type == "summary":
+            id += 1
+            item.insert(0, id)
+
             amount_total += item[2]
             items_total += item[3]
 
@@ -946,7 +947,7 @@ def cmd_show(args):
         print_csv_table(
             summary_headers,
             aggregate_result,
-            add_columns=False,
+            "summary",
             format_columns=[2, 3],
         )
 
@@ -955,7 +956,7 @@ def cmd_show(args):
         else:
             return None
 
-    print_csv_table(headers, items_parsed, format_columns=[3, 4])
+    print_csv_table(headers, items_parsed, "items", format_columns=[3, 4])
 
     return None
 
