@@ -11,7 +11,7 @@ and formats.
 # Install it on a well known system path that will work on most systems, feel
 # free to adjust this path if you want, you can delete the script when you're done
 sudo curl \
-  -L https://raw.githubusercontent.com/nickjj/plutus/0.5.1/src/importers/import-gnucash \
+  -L https://raw.githubusercontent.com/nickjj/plutus/0.5.2/src/importers/import-gnucash \
   -o /usr/local/bin/import-gnucash && sudo chmod +x /usr/local/bin/import-gnucash
 ```
 

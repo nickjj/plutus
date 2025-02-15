@@ -44,7 +44,7 @@ COLOR_RESET = "\033[0m"
 
 SCRIPT_PATH = sys.argv[0]
 SCRIPT_NAME = os.path.basename(f"{SCRIPT_PATH.replace('./', '')}")
-SCRIPT_VERSION = "0.5.1"
+SCRIPT_VERSION = "0.5.2"
 
 if os.getenv("PLUTUS_CONFIG"):
     if os.sep in os.getenv("PLUTUS_CONFIG"):
