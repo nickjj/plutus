@@ -345,7 +345,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
 
     def test_lint_invalid_sort(self):
-        first_line = '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"'  # noqa: E501
+        first_line = '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"'  # noqa: E501
         last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
 
         with open(TEST_PROFILE) as file:
@@ -426,7 +426,7 @@ class TestCLI(unittest.TestCase):
 
         lines = stdout.splitlines()
 
-        first_line = '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"'  # noqa: E501
+        first_line = '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"'  # noqa: E501
         last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
 
         expected_headers = "Date,Category,Amount,Method,Notes"
@@ -537,7 +537,7 @@ class TestCLI(unittest.TestCase):
         stdout, _stderr, _rc = call_script("show", "--raw")
         self.assertIn("Date,Category,Amount,Method,Notes", stdout)
         self.assertIn(
-            '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"',  # noqa: E501
+            '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"',  # noqa: E501
             stdout,
         )
 
@@ -545,7 +545,7 @@ class TestCLI(unittest.TestCase):
         stdout, _stderr, _rc = call_script("show", "2025", "--raw")
         self.assertIn("Date,Category,Amount,Method,Notes", stdout)
         self.assertNotIn(
-            '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"',  # noqa: E501
+            '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"',  # noqa: E501
             stdout,
         )
 
@@ -809,7 +809,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(stdout, "")
 
     def test_edit_sort_with_changes(self):
-        first_line = '2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"'  # noqa: E501
+        first_line = '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"'  # noqa: E501
         last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
 
         with open(TEST_PROFILE) as file:

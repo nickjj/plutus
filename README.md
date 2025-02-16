@@ -110,7 +110,7 @@ plutus show 2025
    | Date       | Category                                | Amount     | Total      | Method      | Notes
 --------------------------------------------------------------------------------------------------------------------------------
 1  | 2025-02-05 | Personal Expenses:Entertainment:Games   | -$5.03     | -$5.03     | FreedomCard | Hollow Knight
-2  | 2025-02-28 | Personal Expenses:Transportation        | -$1,244.03 | -$1,249.06 | FreedomCard | Plane trip to Antartica
+2  | 2025-02-28 | Personal Expenses:Travel                | -$1,244.03 | -$1,249.06 | FreedomCard | Plane trip to Antartica
 3  | 2025-03-17 | Personal Expenses:Groceries             | -$14.14    | -$1,263.20 | FreedomCard |
 4  | 2025-04-30 | Personal Expenses:Groceries             | -$84.21    | -$1,347.41 | FreedomCard |
 5  | 2025-05-02 | Tax:Refunds                             | $1,614.00  | $266.59    | ACH         | Federal
@@ -179,7 +179,7 @@ plutus show --summary
 12 | Personal Expenses:Entertainment:Games   | -$15.20    | -$794.80   | 2     | 23
 13 | Personal Expenses:Entertainment:Netflix | -$16.83    | -$811.63   | 1     | 24
 14 | Personal Expenses:Groceries             | -$182.56   | -$994.19   | 3     | 27
-15 | Personal Expenses:Transportation        | -$1,296.04 | -$2,290.23 | 3     | 30
+15 | Personal Expenses:Travel                | -$1,296.04 | -$2,290.23 | 3     | 30
 16 | Tax:Refunds                             | $1,850.00  | -$440.23   | 2     | 32
 ```
 
@@ -208,8 +208,8 @@ plutus show "Business Expenses:"
 plutus show 2024 --raw
 
 Date,Category,Amount,Method,Notes
-2024-01-12,"Personal Expenses:Transportation",-20.01,"FreedomCard","Gas"
-2024-02-28,"Personal Expenses:Transportation",-32.00,"FreedomCard","Train to NYC"
+2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"
+2024-02-28,"Personal Expenses:Travel",-32.00,"FreedomCard","Train to NYC"
 2024-04-30,"Personal Expenses:Groceries",-84.21,"FreedomCard",
 2024-06-09,"Personal Expenses:Dining Out",-10.00,"SapphireCard","Pinneapple Pizza"
 2024-07-17,"Business Expenses:Rent",-1600.00,"Cash",
@@ -224,7 +224,7 @@ with color highlighting:**
 ```
 plutus lint
 
-WARNING [EXPENSE_IS_POSITIVE] [L3]: 2024-02-28,"Personal Expenses:Transportation",32.00,"FreedomCard","Train to NYC"
+WARNING [EXPENSE_IS_POSITIVE] [L3]: 2024-02-28,"Personal Expenses:Travel",32.00,"FreedomCard","Train to NYC"
 ERROR [DATE_MISMATCH] [L8]: 2024-99-15,"Income:Sponsors:OpenSource",0.01,"Venmo","Zero Cool"
 ERROR [CATEGORY_MISMATCH] [L12]: 2025-03-17,"Personal Expenses::Groceries",-14.14,"FreedomCard",
 ERROR [NOTES_MISMATCH] [L23]: 2025-08-18,"Business Expenses:Rent",-3200.00,"Cash","2 months, commas aren't allow"
@@ -239,7 +239,7 @@ ERROR [SORT_BY_DATE_MISMATCH]:
  2024-99-15,"Income:Sponsors:OpenSource",0.01,"Venmo","Zero Cool"
 -2024-11-30,"Income:Affiliates:DigitalOcean",25.00,"ACH",
  2025-02-05,"Personal Expenses:Entertainment:Games",-5.03,"FreedomCard","Hollow Knight"
- 2025-02-28,"Personal Expenses:Transportation",-1244.03,"FreedomCard","Plane trip to Antartica"
+ 2025-02-28,"Personal Expenses:Travel",-1244.03,"FreedomCard","Plane trip to Antartica"
  2025-03-17,"Personal Expenses::Groceries",-14.14,"FreedomCard",
 
 4 linting errors occurred, here's all of the rules to check into:
