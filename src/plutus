@@ -33,7 +33,6 @@ except (locale.Error, ValueError):
 config = configparser.ConfigParser()
 
 # ANSI escape codes for color.
-COLOR_BRIGHT_WHITE = "\033[97m"
 COLOR_RED = "\033[31m"
 COLOR_GREEN = "\033[32m"
 COLOR_YELLOW = "\033[32m"
