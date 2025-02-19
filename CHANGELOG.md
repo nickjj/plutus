@@ -7,10 +7,18 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- General purpose CSV import script for bank CSV exports, GnuCash and more!
+
 ### Changed
 
 - For the `show` command, either `--summary` or `--summaey-with-items` can be set but not both
 - Rename `Transportation` to `Travel` in the demo categories
+
+### Removed
+
+- GnuCash import script (the general purpose one replaces it)
 
 ## [0.5.2] - 2025-02-14
 

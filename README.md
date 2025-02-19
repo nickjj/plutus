@@ -8,8 +8,8 @@ filing taxes. It's focused on individuals who want a simple way to help gain
 insight on their finances.
 
 It's a zero dependency Python script. No package managers required! Installing
-it is a matter of curling down 1 file, or perhaps a few files if you want to
-use any of the importers to help you migrate from other tools.
+it is curling down 1 file, or perhaps 2 files if you want to use the general
+purpose CSV importer for bank exports or migrating from other tools.
 
 ## 🖥 Demo video
 
@@ -327,8 +327,8 @@ There's a few more options and commands but that's the core of it.
   - Use whatever code editor you're comfy with for adding or editing items
   - Pipe its output into other tools if you want to do custom processing
   - View it in any spreadsheet program if you want occasional GUI features
-  - Easy to write custom importers (ie. bank CSVs) since you just produce a CSV file
   - Easy to share with accountants if requested (1 file and a common format)
+  - Easy to write custom importers since it's text in a standard format
 - Most commands only open the CSV file in read-only mode to protect against corruption
   - The few commands that write to it are super explicit (ie. `insert` and `edit`)
 - An extensive `lint` command to help identify any input errors
@@ -355,6 +355,8 @@ There's a few more options and commands but that's the core of it.
   - `plutus demo --init-benchmarks` will benchmark 1,000, 10,000 and 100,000 items
 - Supports various formatting symbols depending on your locale and preference
   - Optionally show currency symbols / separators and display `()` instead of `-` for negatives
+- Has a general purpose CSV import script that works with bank CSV exports, GnuCash, etc.
+  - I've successfully imported hundreds of items from quite a few different sources!
 
 ## ⚡️ Installation
 
@@ -659,17 +661,14 @@ Each field is separated by commas and all string fields except the date always
 require quotes for consistency to reduce potential parsing errors. The `lint
 --rules` command explains all of the rules in more detail.
 
-## 📑 Importing from other tools
+## 📑 Importing from external data sources
 
-At the moment there is an importer for GnuCash. I could see a future where
-importers are added for common bank CSV export formats too. Check out the
-[importers/](./src/importers/) directory for more details.
+There is a general purpose CSV import script in the
+[importers/](./src/importers/) directory. Check it out for more details.
 
-The good news is, there is nothing specific about this tool in relation to
-import scripts. The GnuCash importer is a standalone script. All importers take
-whatever input you have and produce a CSV file in Plutus' format.
-
-That means you can start importing things in an automated way on your own.
+The TL;DR is I've used it to import thousands of items from GnuCash as well
+as regularly import data from 2 different bank CSV exports. It all lines up
+and does things in a non-destructive way that's easy to verify.
 
 ## 🤝 Feedback and code contributions
 

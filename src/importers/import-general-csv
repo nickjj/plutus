@@ -1,0 +1,810 @@
+#!/usr/bin/env python3
+
+import argparse
+import csv
+import os
+import re
+import sys
+import textwrap
+import traceback
+from datetime import datetime
+from decimal import Decimal
+from itertools import tee
+
+# ANSI escape codes for color.
+COLOR_RED = "\033[31m"
+COLOR_GREEN = "\033[32m"
+COLOR_BLUE = "\033[34m"
+COLOR_MAGENTA = "\033[35m"
+COLOR_CYAN = "\033[36m"
+COLOR_RESET = "\033[0m"
+
+SCRIPT_PATH = sys.argv[0]
+SCRIPT_NAME = os.path.basename(f"{SCRIPT_PATH.replace('./', '')}")
+SCRIPT_VERSION = "0.5.2"
+
+if os.getenv("PLUTUS_CONFIG"):
+    if os.sep in os.getenv("PLUTUS_CONFIG"):
+        SCRIPT_CONFIG_DIR = os.path.dirname(os.getenv("PLUTUS_CONFIG"))
+    else:
+        SCRIPT_CONFIG_DIR = os.getcwd()
+    SCRIPT_CONFIG = os.getenv("PLUTUS_CONFIG")
+else:
+    SCRIPT_CONFIG_DIR = f'{os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))}/plutus'  # noqa: E501
+    SCRIPT_CONFIG = f"{SCRIPT_CONFIG_DIR}/{SCRIPT_NAME}.ini"
+
+CONFIG = {
+    "Ignore": {},
+    "Map_Categories": {},
+}
+
+PLUTUS_HEADERS = "Date,Category,Amount,Method,Notes"
+
+# Do the best we can to extract the date from a string, some formats like
+# GnuCash input the day before the date such as Thu, 02/18/2025, this attempts
+# to capture everything that's likely only part of the date.
+REGEX_DATE = (
+    r"[0-9]{2,4}(\/|-|\.|_| |,|\\)[0-9]{2}(\/|-|\.|_| |,|\\)[0-9]{2,4}"
+)
+REGEX_DATE_PATTERN = re.compile(f"({REGEX_DATE})")
+
+# Extract the amount and remove any formatting.
+REGEX_AMOUNT = r"[^-0-9.()]"
+REGEX_AMOUNT_PATTERN = re.compile(REGEX_AMOUNT)
+
+
+def validate_input(value):
+    value = value.strip()
+
+    if os.path.exists(value):
+        with open(value) as file:
+            line = file.readline().strip("\n")
+
+            # This isn't perfect but it's better than complicating this tool
+            # to introduce another argument to pass in. Reaslistically you'll
+            # find out really fast if you passed in the wrong CSV file.
+            if line.count(",") < 4:
+                msg = f"'{value}' doesn't appear to be a valid CSV file export"
+                raise argparse.ArgumentTypeError(msg)
+
+        return value
+    else:
+        msg = f"'{value}' file does not exist"
+        raise argparse.ArgumentTypeError(msg)
+
+
+def validate_date(value):
+    value = value.strip()
+
+    date_formats = [
+        "01/01/2025",
+        "2025/01/01",
+        "01-01-2025",
+        "2025-01-01",
+        "01.01.2025",
+        "2025.01.01",
+        "01_01_2025",
+        "2025_01_01",
+        "01 01 2025",
+        "2025 01 01",
+        "01,01,2025",
+        "2025,01,01",
+        "01\\01\\2025",
+        "2025\\01\\01",
+    ]
+
+    for date in date_formats:
+        try:
+            convert_date_format(date, value)
+            return value
+        except Exception:
+            print(traceback.format_exc())
+            continue
+
+    msg = f"'{value}' doesn't parse dates into a valid format"
+    raise argparse.ArgumentTypeError(msg)
+
+
+def validate_col_indexes(value):
+    value = value.strip()
+
+    if value.count(",") != 2:
+        msg = f"'{value}' didn't have exactly 2 commas"
+        raise argparse.ArgumentTypeError(msg)
+
+    try:
+        date, amount, notes = value.split(",")
+
+        int(date.strip())
+        int(amount.strip())
+        int(notes.strip())
+
+        return value
+    except Exception:
+        msg = f"'{value}' doesn't appear to have 2 integer column indexes"
+        raise argparse.ArgumentTypeError(msg)
+
+
+def validate_payment_method(value):
+    value = value.strip()
+
+    if re.search(r"(,|:|'|\"|\\n)", value):
+        msg = f"'{value}' cannot have commas, colons, single or double quotes"
+        raise argparse.ArgumentTypeError(msg)
+
+    return value
+
+
+def validate_profile(value):
+    value = value.strip()
+
+    if os.path.exists(value):
+        with open(value) as file:
+            line = file.readline().strip("\n")
+
+            if line != PLUTUS_HEADERS:
+                msg = f"'{value}' doesn't appear to be a Plutus profile"
+                raise argparse.ArgumentTypeError(msg)
+
+        return value
+    else:
+        msg = f"'{value}' file does not exist"
+        raise argparse.ArgumentTypeError(msg)
+
+
+def validate_summary(value):
+    value = value.strip()
+
+    try:
+        # We know it's good if no value is provided.
+        if value == "":
+            return ""
+
+        indexes = value.split(",")
+
+        for index in indexes:
+            int(index.strip())
+
+        return indexes
+    except Exception:
+        msg = f"'{value}' doesn't appear to have integer column indexes"
+        raise argparse.ArgumentTypeError(msg)
+
+
+def validate_category(value):
+    value = value.strip()
+    error_count = 0
+
+    if re.search(r":{2,}", value):
+        msg = "cannot contain 2+ colons in a row"
+        error_count += 1
+    elif re.search(r"(^:|:$)", value):
+        msg = "cannot start or end with a colon"
+        error_count += 1
+    elif re.search(r"(,|'|\"|\\n)", value):
+        msg = "cannot have commas, single or double quotes"
+        error_count += 1
+
+    if error_count > 0:
+        print(f"'{value}' is not a valid category in your mappings")
+        print(f"  - it {msg}")
+        sys.exit(1)
+
+    return value
+
+
+def validate_item(value):
+    item_count = len(value)
+
+    if item_count < 5:
+        raise Exception("PARSE_FAILURE")
+
+    return True
+
+
+def validate_config():
+    if not os.path.isfile(SCRIPT_CONFIG):
+        os.makedirs(SCRIPT_CONFIG_DIR, exist_ok=True)
+
+        with open(SCRIPT_CONFIG, "w") as file:
+            file.write("[Ignore]\n\n[Map_Categories]\n")
+
+    current_section = None
+
+    # I couldn't get ConfigParser to work with duplicate items, I tried a ton
+    # of things and reached page 10 on Google. This works but it's so
+    # ridiculous I cannot believe it had to be written.
+    with open(SCRIPT_CONFIG) as file:
+        for line in file:
+            line = line.strip()
+
+            # Ignore comments.
+            if not line or line.startswith((";", "#")):
+                continue
+
+            section_match = re.match(r"\[(.*?)\]", line)
+
+            if section_match:
+                current_section = section_match.group(1)
+                CONFIG[current_section] = {}
+            elif current_section:
+                key_value_match = re.match(r"([^=]+)=(.*)", line)
+
+                if key_value_match:
+                    # Swap the keys and values to support duplicate unused
+                    # keys but enforce unique regex patterns.
+                    value, key = key_value_match.groups()
+                    CONFIG[current_section][key.strip()] = value.strip()
+
+    return None
+
+
+def convert_date_format(date, input_format):
+    date = REGEX_DATE_PATTERN.search(date).group()
+
+    return datetime.strptime(date, input_format).strftime("%Y-%m-%d")
+
+
+def ignore_category(raw_item):
+    for key, _value in CONFIG["Ignore"].items():
+        if re.search(key, raw_item):
+            return True
+
+    return False
+
+
+def skip_item(profile_path, plutus_item):
+    plutus_item_without_notes = ",".join(plutus_item.split(",")[:-1])
+
+    with open(profile_path) as file:
+        if f"{plutus_item_without_notes}," in file.read():
+            return True
+
+    return False
+
+
+def map_category(raw_item):
+    for key, value in CONFIG["Map_Categories"].items():
+        if re.search(key, raw_item):
+            return value
+
+    return "TODOUnknown"
+
+
+def write_temp_output_file(path, items):
+    with open(path, "w") as file:
+        file.write(f"{PLUTUS_HEADERS}\n")
+        file.writelines(sorted(items, key=lambda item: (item[0], item)))
+
+    return None
+
+
+def load_imported_csv(args):
+    aggregator = {}
+    input_headers = []
+    input_headers_mapping = ""
+
+    ignored_lines = []
+    new_lines = []
+    skipped_lines = []
+
+    ignored_count = 0
+    new_count = 0
+    skipped_count = 0
+    total_line_count = 0
+
+    amount_total = 0
+
+    with open(args.input) as csvfile:
+        output_1, output_2 = tee(csvfile)
+
+        for item, raw_item in zip(csv.reader(output_1), output_2):
+            # Ignore empty lines.
+            if not item:
+                continue
+
+            # Skip the header line but still populate what the headers are.
+            if total_line_count == 0:
+                input_headers = item
+                for index, value in enumerate(input_headers):
+                    input_headers_mapping += f"{index}  {value}\n"
+
+                total_line_count += 1
+                continue
+
+            try:
+                date_col, amount_col, notes_col = args.input_col_indexes.split(
+                    ","
+                )
+                date_col = int(date_col.strip())
+                amount_col = int(amount_col.strip())
+                notes_col = int(notes_col.strip())
+
+                date = convert_date_format(item[date_col], args.input_date)
+
+                category_name = map_category(raw_item)
+                category_ignored = ignore_category(raw_item)
+                category_quoted = f'"{category_name}"'
+
+                amount = REGEX_AMOUNT_PATTERN.sub("", item[amount_col])
+
+                if item[amount_col][0] == "(":
+                    amount = -Decimal(amount[1:-1])
+                else:
+                    amount = Decimal(amount)
+
+                method = f'"{args.payment_method}"'
+
+                notes = (
+                    item[notes_col]
+                    .replace("\n", "")
+                    .replace('"', "")
+                    .replace(",", ";")
+                    .replace(":", ";")
+                    .strip()
+                )
+                if notes != "":
+                    notes = f'"{notes}"'
+
+                total_line_count += 1
+
+                validate_item(item)
+
+                line = (
+                    f"{date},{category_quoted},{amount:.2f},{method},{notes}"
+                )
+
+            except Exception:
+                comma_count = raw_item.count(",")
+
+                print(f"ERROR [PARSE_FAILURE] L{total_line_count}: {raw_item}")
+                print(
+                    f"""Here's a few things to check into:
+
+- The above line has at least 4+ commas, this line has {comma_count}
+- A field may have an incorrect data type (ie. string instead of a number)
+- --input-col-indexes {args.input_col_indexes} has an invalid column index
+- The CSV headers are not on the first line
+
+Here's the CSV headers:
+
+{input_headers_mapping}
+Here's the stack trace:
+                """
+                )
+                print(traceback.format_exc())
+                sys.exit(1)
+
+            # We want to do this now before anything gets ignored or skipped.
+            if args.summary != "":
+                for index, column in enumerate(item):
+                    # Do it for all items unless a list of IDs were supplied.
+                    if args.summary and str(index) not in args.summary:
+                        continue
+
+                    if index not in aggregator:
+                        aggregator[index] = set([])
+
+                    if item[index]:
+                        aggregator[index].add(item[index])
+
+            # It's been explicitly ignored, so let's skip it.
+            if category_ignored:
+                ignored_count += 1
+                ignored_lines.append(f"{line}\n")
+                continue
+
+            # Now it might have duplicates.
+            if skip_item(args.profile, line):
+                skipped_count += 1
+                skipped_lines.append(f"{line}\n")
+                continue
+
+            new_count += 1
+            new_lines.append(f"{line}\n")
+
+            if args.summary == "":
+                # We only want the total to match what's included.
+                amount_total += amount
+                print(
+                    line.replace(
+                        ',"TODOUnknown",',
+                        f",{COLOR_RED}{category_quoted}{COLOR_RESET},",
+                    )
+                )
+
+                if not args.skip_debug:
+                    print(
+                        f"{COLOR_CYAN}DEBUG{COLOR_RESET} ({COLOR_MAGENTA}#{new_count} on L{total_line_count}{COLOR_RESET} - {COLOR_GREEN}{amount_total:.2f}{COLOR_RESET}): {COLOR_BLUE}{raw_item}{COLOR_RESET}"  # noqa: E501
+                    )
+
+    if args.summary != "":
+
+        for k, v in aggregator.items():
+            if not v:
+                continue
+
+            header = input_headers[k].replace('"', "")
+            print(f'\nColumn {k}: "{header}" ({len(v)})')
+            for value in v:
+                print(f"  {value}")
+
+        if not aggregator:
+            print(
+                f"No results were found for column(s) {','.join(args.summary)}. Try a different column index:\n"  # noqa: E501
+            )
+            print(input_headers_mapping.rstrip())
+            sys.exit(1)
+
+        print(
+            """
+The above includes unique values for each column displayed. It includes ignored,
+skipped and new items, AKA. every processed line.
+
+You can use this information to help get a rough idea of what your data looks
+like to help determine which regex filters you might want to create.
+
+The normal non-summary output provides this information too but viewing it
+like this can make it easier to skim types of items.
+
+You can use --summary 1,2 or any column indexes to show only those columns"""  # noqa: E501
+        )
+
+        return None
+
+    write_temp_output_file(TEMP_OUTPUT_IGNORED_FILE, ignored_lines)
+    write_temp_output_file(TEMP_OUTPUT_SKIPPED_FILE, skipped_lines)
+    write_temp_output_file(TEMP_OUTPUT_NEW_FILE, new_lines)
+
+    print(
+        f"""OK: {ignored_count} ignored items were written to {TEMP_OUTPUT_IGNORED_FILE}
+OK: {skipped_count} skipped items were written to {TEMP_OUTPUT_SKIPPED_FILE}
+OK: {new_count} new items were written to {TEMP_OUTPUT_NEW_FILE}
+OK: {total_line_count - 1} items were parsed
+
+-------------------------------------------------------------------------------
+Verify everything is correct
+-------------------------------------------------------------------------------
+
+PLUTUS_PROFILE="{TEMP_OUTPUT_IGNORED_FILE}" plutus show --summary-with-items --sort category
+PLUTUS_PROFILE="{TEMP_OUTPUT_SKIPPED_FILE}" plutus show --summary-with-items --sort category
+PLUTUS_PROFILE="{TEMP_OUTPUT_NEW_FILE}" plutus show --summary-with-items --sort category
+
+You should also run the lint command to verify everything was parsed correctly."""  # noqa: E501
+    )
+
+    if not args.skip_help:
+        print(
+            f"""
+-------------------------------------------------------------------------------
+What are these item files?
+-------------------------------------------------------------------------------
+
+- Ignored items were due to regex filters you've added to this script's config
+ - This script's config is located at: {SCRIPT_CONFIG}
+- Skipped items were due to them already existing in {args.profile}
+  - This check only factors in the Date + Category + Amount + Method
+  - This check ignores your notes in case you modified them
+- New items don't already exist in {args.profile}
+
+-------------------------------------------------------------------------------
+Tips on using this importer effectively
+-------------------------------------------------------------------------------
+
+Without any ignored items or category mappings then you will end up with a
+fully parsed CSV file in Plutus' format with "TODOUnknown" for each category.
+
+That is your base line. If you did nothing else, this already saved you a lot
+of time to manually parse everything.
+
+Now start thinking about items you don't want to track in Plutus, perhaps these
+are Stripe ACH transactions because you already account for that elsewhere, or
+bank auto-payments to pay off a credit card.
+
+Keep running this tool while you edit this script's config to add new ignore
+regex filters to this importer. You'll notice your list of items being printed
+gets smaller and smaller, that's good. You are reducing the list.
+
+Now what's left will be potentially added to your real profile but they are
+all categorized as TODOUnknown because this tool cannot decide that for you.
+
+Keep running this tool while you edit this script's config to add new category
+mapping regex filters to this importer. You'll start to see everything get
+categorized with your names instead of TODOUnknown.
+
+Eventually everything will be categorized and now you're in a position to add
+anything you see in the output to your real profile because anything that
+already exists in your real profile is skipped.
+
+The debug output includes line counts on new items that would be added, a true
+line count of the input file, a running total on the amount and the raw line.
+You can use this to help verify your data. For example with GnuCash imports the
+running total should match your account's total.
+
+-------------------------------------------------------------------------------
+Regex filters for ignoring items and mapping categories
+-------------------------------------------------------------------------------
+
+This config file is stored in: {SCRIPT_CONFIG}
+
+The filters will be run against the raw line from your CSV input file, this
+allows you to be very strict and safe with your regular expressions.
+
+Add as many rules as you'd like under each section. In both cases the value
+is a regular expression. The key will be different depending on the section.
+
+For ignoring items:
+
+[Ignore]
+_ = ^(CREDIT|DEBIT),.+STRIPE           TRANSFER   ST-.+ CCD ID: .+ACH_(CREDIT|DEBIT).+
+
+The key gets ignored, I chose to use _ to hint it's ignored but technically
+you can use whatever key you want.
+
+The above matches on Stripe sales / refunds. A majority of your match will
+likely be against the description. I also like to include the details and type
+of transaction to make it even tighter (less false positives).
+
+Some descriptions are vague enough where a false positive isn't impossible.
+
+For GnuCash imports you'll notice there's double the entries, that's because
+its export has double-entry bookkeeping where it's recording both the income
+and the expense.
+
+I suggest adding an ignore rule for the account you transfer funds out of.
+For example, if it's called "Assets" you can create this regex:
+
+[Ignore]
+_ = ,"Assets","n",
+
+For mapping categories:
+
+[Map_Categories]
+Business Expenses:Postage = ^DEBIT,.+USPS PO .+ .+DEBIT_CARD.+
+
+The key is the Plutus category want to use, it supports duplicates if you end
+up wanting to map multiple items to the same category.
+
+https://github.com/nickjj/plutus/wiki has a list of known patterns. I'll add
+what I can and I encourage you to do the same. It'll help everyone!
+
+For GnuCash imports it works the same way, I suggest using a pretty strict
+regex to avoid false positives, such as:
+
+[Map_Categories]
+Business Expenses:Postage = ,"Business Expenses:Postage","n",
+
+-------------------------------------------------------------------------------
+Manually update your real profile
+-------------------------------------------------------------------------------
+
+- For ignored items, skim it and make sure everything there should really be ignored
+- For skipped items, spot check a few to make sure they exist in your real profile
+- When you're happy with everything, copy your new items into your real profile
+- Run the Plutus lint command on your real profile to confirm there's nothing wrong
+- Delete the ignored, new and skipped temporary files this importer created
+
+-------------------------------------------------------------------------------
+This sucks, there's so many steps
+-------------------------------------------------------------------------------
+
+Even big credit card companies won't auto-categorize your items correctly in a
+lot of cases. There's always going to be manual adjustments.
+
+This tool attempts to automate as much as it can and give you everything you
+need to verify the results in a way that provides a high amount of confidence.
+
+You never have to worry about something being accidentally not added or added
+because all 3 temporary files exist showing each one and this tool will never
+directly edit your real profile. You can review and adjust anything as needed.
+
+Truthfully it's not bad. I fully ignored and categorized an entire year's
+worth of bank items (582 of them) and it took me 30 minutes to create the regex
+filters and now that they are set up, most of them won't change.
+
+For example I pay DigitalOcean 12 times per year and their description doesn't
+change often so that's something I don't need to worry about. Even if it did
+change it's a 1 off that might happen once every few years.
+
+It will be easy to spot this too because I will see it come up as TODOUnknown
+and now I need to go back and add a new regex for this or modify the old one.
+
+You probably have habits too. For example, you might go grocery shopping a few
+times per week but it's probably the same few stores. So even if there's 150
+items, you only need to write a handful of regex filters.
+
+Where it becomes annoying is when you buy many different things from different
+stores. Now you end up with a bunch of descriptions that you need to individually
+handle. Eventually you need to categorize them so you might as well do it now,
+but you could choose to import them as TODOUnknown and address them in the future.
+
+Everyone is different but that typically only happens to me when I'm on
+vacation, such as eating out or purchasing tickets from a bunch of places.
+
+Even then you can write a few regex filters to match your credit card's
+categories to yours and lean on that to auto-categorize most of your items.
+
+On that note, don't forget to enjoy life!
+
+P.S., you can add --skip-help to avoid always outputting this guide."""  # noqa: E501
+        )
+
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(
+        f"""\
+    Take compatible CSV exports and import them into a format Plutus accepts.
+
+    Export:
+      Any CSV file (bank, etc.) into Plutus:
+
+      Steps:
+        1. Export your data into a CSV file
+        2. Supply the first step's file as --input
+
+      GnuCash's CSV file into Plutus:
+
+      Steps:
+        1. Export your transactions into a CSV file
+        2. Enable "Use Quotes" and "Simple Layout" in the export settings
+        3. Select all of your accounts for all times (adjust as necessary)
+        4. Supply the first step's file as --input
+
+    Examples:
+      All 4 examples below demonstrate using all of this script's features.
+
+      While they all expect you to pass in your Plutus profile, this script
+      does not ever modify it directly. It only reads it to help skip duplicate
+      items. This script contains a lot of help after you run it!
+
+      # Chase's checking export uses the second, fourth and third columns to
+      # store the date, notes and amount. We don't need to supply --input-date
+      # here since the default format of %m/%d/%Y is how Chase supplies dates.
+      #
+      # Chase's credit card export uses columns 0,5,2 instead of 1,3,2 btw.
+      {SCRIPT_NAME} \\
+        --input /tmp/chase-checking.csv \\
+        --input-col-indexes 1,3,3 \\
+        --payment-method ChaseChecking \\
+        --profile ~/business/plutus.csv
+
+      # This is the same as above except it includes --summary which provides
+      # you an alternative look at your data, everything is grouped by each
+      # column so you can see all unique values for each column.
+      #
+      # It will provide outputs for each column by default but you can choose
+      # to enter in a comma separated list of column indexes to only show those.
+      {SCRIPT_NAME} \\
+        --input /tmp/chase-checking.csv \\
+        --input-col-indexes 1,3,3 \\
+        --payment-method ChaseChecking \\
+        --profile ~/business/plutus.csv \\
+        --summary
+
+      # GnuCash's export uses a different set of columns to store the date, amount
+      # and notes. We also don't need to supply --input-date here since the
+      # default format of %m/%d/%Y is how GnuCash supplies dates.
+      #
+      # Since GnuCash will contain items with potentially many different
+      # methods (ChaseSapphire, Stripe, PayPal, etc.), we'll go with TODOAssorted
+      # as the method and then you can update them manually at a later time
+      # after everything has been imported into Plutus.
+      {SCRIPT_NAME} \\
+        --input /tmp/gnucash.csv \\
+        --input-col-indexes 0,7,3 \\
+        --payment-method TODOAssorted \\
+        --profile ~/business/plutus.csv
+
+      # Like the above 3 examples, we'll pick which columns to read the date,
+      # amount and notes from. Now we're also supplying a custom date strftime
+      # format that this CSV file uses.
+      #
+      # We've also decided to skip printing debug information and the extra
+      # help / guides that this script outputs by default.
+      {SCRIPT_NAME} \\
+        --input /tmp/unknown.csv \\
+        --input-col-indexes 3,5,6 \\
+        --input-date "%d-%m-%Y" \\
+        --payment-method AcmeBankChecking \\
+        --profile ~/business/plutus.csv \\
+        --skip-debug --skip-help
+
+    Issues:
+      Please report issues and feedback at https://github/nickjj/plutus
+
+    ---
+    """  # noqa:E501
+    ),
+)
+
+parser.add_argument(
+    "-i",
+    "--input",
+    required=True,
+    type=validate_input,
+    metavar="PATH",
+    help="Exported CSV file",
+)
+
+parser.add_argument(
+    "-d",
+    "--input-date",
+    nargs="?",
+    type=validate_date,
+    metavar="DATE_FORMAT",
+    default="%m/%d/%Y",
+    help="Exported date format as strftime (defaults to %%m/%%d/%%Y)",
+)
+
+parser.add_argument(
+    "-c",
+    "--input-col-indexes",
+    required=True,
+    type=validate_col_indexes,
+    metavar="INDEXES",
+    help="Exported date, amount and notes column indexes as a comma separated list (ie. 1,3,2)",  # noqa: E501
+)
+
+parser.add_argument(
+    "-m",
+    "--payment-method",
+    required=True,
+    type=validate_payment_method,
+    metavar="NAME",
+    help="ie. ChaseChecking, ChaseFreedom, Zelle, Stripe, PayPal, Cash, etc.",
+)
+
+parser.add_argument(
+    "-p",
+    "--profile",
+    required=True,
+    type=validate_profile,
+    metavar="PATH",
+    help="Plutus profile which is only read to skip duplicate items",
+)
+
+parser.add_argument(
+    "-s",
+    "--summary",
+    nargs="?",
+    type=validate_summary,
+    metavar="INDEXES",
+    default="",
+    help="Display unique values for each column, provide column indexes as a comma separated list to only show those",  # noqa: E501
+)
+
+parser.add_argument(
+    "-D",
+    "--skip-debug",
+    default=False,
+    action="store_true",
+    help="Skip outputting debug information",
+)
+
+parser.add_argument(
+    "-H",
+    "--skip-help",
+    default=False,
+    action="store_true",
+    help="Skip outputting the extra help and guides",
+)
+
+if len(sys.argv) == 2 and sys.argv[1] in ("version", "-v", "--version"):
+    print(SCRIPT_VERSION)
+    sys.exit(0)
+
+args = parser.parse_args()
+
+validate_config()
+
+TEMP_OUTPUT_PATH = f"/tmp/plutus-{SCRIPT_NAME}"
+TEMP_OUTPUT_NEW_FILE = f"{TEMP_OUTPUT_PATH}-{args.payment_method}-new.csv"
+TEMP_OUTPUT_SKIPPED_FILE = (
+    f"{TEMP_OUTPUT_PATH}-{args.payment_method}-skipped.csv"
+)
+TEMP_OUTPUT_IGNORED_FILE = (
+    f"{TEMP_OUTPUT_PATH}-{args.payment_method}-ignored.csv"
+)
+
+load_imported_csv(args)
