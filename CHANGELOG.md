@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Fixed
+
+- Missing f-string in general CSV import verification output
 
 ## [0.6.2] - 2025-02-20
 
