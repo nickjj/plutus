@@ -1862,7 +1862,7 @@ parser_show.add_argument(
     nargs="?",
     metavar="PATTERN",
     default="",
-    help="optionally filter results by a regex pattern",
+    help="Optionally filter results by a regex pattern",
 )
 
 parser_show.add_argument(
@@ -1871,7 +1871,7 @@ parser_show.add_argument(
     type=validate_sort_column,
     metavar="FIELD",
     default="Date",
-    help="bidirectionally sort results by a specific field",
+    help="Bidirectionally sort results by a specific field",
 )
 
 parser_show_group.add_argument(
@@ -1881,7 +1881,7 @@ parser_show_group.add_argument(
     const="category",
     type=validate_summary_column,
     metavar="COLUMN",
-    help="aggregate amount totals and item counts for a specific column type",
+    help="Aggregate amount totals and item counts for a specific column type",
 )
 
 parser_show_group.add_argument(
@@ -1891,7 +1891,7 @@ parser_show_group.add_argument(
     const="category",
     type=validate_summary_column,
     metavar="COLUMN",
-    help="view both a summary of column types and items",
+    help="View both a summary of column types and items",
 )
 
 parser_show.add_argument(
@@ -1899,7 +1899,7 @@ parser_show.add_argument(
     "--raw",
     default=False,
     action="store_true",
-    help="view your profile's lines without any processing except filtering",
+    help="View your profile's lines without any processing except filtering",
 )
 
 parser_edit.add_argument(
@@ -1907,7 +1907,7 @@ parser_edit.add_argument(
     "--sort",
     default=False,
     action="store_true",
-    help="sort your profile and show a diff if anything changed",
+    help="Sort your profile and show a diff if anything changed",
 )
 
 parser_lint.add_argument(
@@ -1915,7 +1915,7 @@ parser_lint.add_argument(
     "--no-errors",
     default=False,
     action="store_true",
-    help="don't exit with status code 1 (could be useful in CI)",
+    help="Don't exit with status code 1 (could be useful in CI)",
 )
 
 parser_lint.add_argument(
@@ -1923,7 +1923,7 @@ parser_lint.add_argument(
     "--no-unique-errors",
     default=False,
     action="store_true",
-    help="don't exit with status code 1 if items are duplicated",
+    help="Don't exit with status code 1 if items are duplicated",
 )
 
 parser_lint.add_argument(
@@ -1931,7 +1931,7 @@ parser_lint.add_argument(
     "--no-warnings",
     default=False,
     action="store_true",
-    help="don't show warnings",
+    help="Don't show warnings",
 )
 
 parser_lint.add_argument(
@@ -1939,7 +1939,7 @@ parser_lint.add_argument(
     "--unique-amounts-date",
     default=False,
     action="store_true",
-    help="check only the date + amount for uniqueness instead of all fields",
+    help="Check only the date + amount for uniqueness instead of all fields",
 )
 
 parser_info.add_argument(
@@ -1947,7 +1947,7 @@ parser_info.add_argument(
     "--categories",
     default=False,
     action="store_true",
-    help="view example categories to use as a starting point",
+    help="View example categories to use as a starting point",
 )
 
 parser_info.add_argument(
@@ -1955,7 +1955,7 @@ parser_info.add_argument(
     "--items",
     default=False,
     action="store_true",
-    help="view example items to see how they are structured",
+    help="View example items to see how they are structured",
 )
 
 parser_info.add_argument(
@@ -1963,7 +1963,7 @@ parser_info.add_argument(
     "--lint-rules",
     default=False,
     action="store_true",
-    help="view the rules used to validate your profile",
+    help="View the rules used to validate your profile",
 )
 
 parser_info_group.add_argument(
@@ -1971,7 +1971,7 @@ parser_info_group.add_argument(
     "--template",
     default=False,
     action="store_true",
-    help="view the custom template in your config directory",
+    help="View the custom template in your config directory",
 )
 
 parser_info_group.add_argument(
@@ -1979,7 +1979,7 @@ parser_info_group.add_argument(
     "--template-example",
     default=False,
     action="store_true",
-    help="view the example custom template as a reference",
+    help="View the example custom template as a reference",
 )
 
 parser_demo_group.add_argument(
@@ -1987,7 +1987,7 @@ parser_demo_group.add_argument(
     "--init",
     default=False,
     action="store_true",
-    help="write a demo profile to disk",
+    help="Write a demo profile to disk",
 )
 
 parser_demo_group.add_argument(
@@ -1995,7 +1995,7 @@ parser_demo_group.add_argument(
     "--init-benchmarks",
     default=False,
     action="store_true",
-    help="write multiple demo profiles to disk and measure their performance",
+    help="Write multiple demo profiles to disk and measure their performance",
 )
 
 # This is a hidden option to make determinstic demos (useful for testing).
@@ -2012,7 +2012,7 @@ parser_config_group.add_argument(
     "--edit",
     default=False,
     action="store_true",
-    help="edit your config file",
+    help="Edit your config file",
 )
 
 parser_config_group.add_argument(
@@ -2020,7 +2020,7 @@ parser_config_group.add_argument(
     "--edit-info",
     default=False,
     action="store_true",
-    help="edit your custom info template",
+    help="Edit your custom info template",
 )
 
 # This is an optional parameter, nargs * says zero or more arguments.
@@ -2029,14 +2029,14 @@ parser_alias.add_argument(
     nargs="*",
     metavar="NAME",
     default="",
-    help="an alias name that you have defined in your config",
+    help="An alias name that you have defined in your config",
 )
 
 parser_alias.add_argument(
     "args",
     nargs=argparse.REMAINDER,
     metavar="ARGS",
-    help="any arguments will be passed directly to your alias",
+    help="Any arguments will be passed directly to your alias",
 )
 
 if __name__ == "__main__":
@@ -2091,7 +2091,7 @@ Files of interest
   - Configured default profile path: {path}
 
 Getting started
-  - Import from any supported tools (GnuCash) if applicable
+  - Import items from bank CSV exports, GnuCash or any CSV file
   - Alternatively, run '{SCRIPT_NAME} demo --init' to create a temp profile with demo data
     - This will write demo data to disk to '{DEMO_PROFILE}'
     - Rather than try to explain everything, seeing the format may be intuitive
