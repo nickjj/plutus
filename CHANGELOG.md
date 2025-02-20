@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Changed
+
+- Improve error message when a parsing error happens by including the headers
 
 ## [0.6.1] - 2025-02-19
 

@@ -673,6 +673,7 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
     result["items"] = {}
     result["items"]["raw"] = []
     result["items"]["parsed"] = []
+    headers_mapping = ""
     pattern_q = ""
 
     # Support quarterly filtering syntax.
@@ -724,6 +725,8 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
                 # We want to get the headers with no extra parsing.
                 if total_line_count == 0:
                     result["headers"] = item
+                    for index, value in enumerate(result["headers"]):
+                        headers_mapping += f"{index}  {value}\n"
 
                     total_line_count += 1
                     continue
@@ -748,17 +751,20 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
 
                 display_error(total_line_count, "PARSE_FAILURE", raw_item)
                 print(
-                    f"""Here's a few things to check for the above line:
+                    f"""Here's a few things to check into:
 
-- There's {comma_count} commas, exactly 4 are expected
+- The above line has {comma_count} comma(s), exactly 4 are expected
 - A field may have an incorrect data type (ie. string instead of a number)
 - The CSV headers are not on the first line
 - Once you address the above for good measure run '{SCRIPT_NAME} lint'
 
+Here's the CSV headers:
+
+{headers_mapping}
 Here's the stack trace:
-                """
+"""
                 )
-                print(traceback.format_exc())
+                print(traceback.format_exc().rstrip())
                 sys.exit(1)
 
     if sort is not None:
