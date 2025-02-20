@@ -213,7 +213,7 @@ class TestCLI(unittest.TestCase):
         stdout, _stderr, rc = replace_csv_line(1, '2025-02-12,"A",0.01')
         self.assertIn("PARSE_FAILURE", stdout)
         self.assertIn("L2", stdout)
-        self.assertIn("2 commas", stdout)
+        self.assertIn("2 comma(s)", stdout)
         self.assertEqual(1, rc)
 
     def test_lint_invalid_item_count_too_many(self):
@@ -222,7 +222,7 @@ class TestCLI(unittest.TestCase):
         )
         self.assertIn("PARSE_FAILURE", stdout)
         self.assertIn("L2", stdout)
-        self.assertIn("5 commas", stdout)
+        self.assertIn("5 comma(s)", stdout)
         self.assertEqual(1, rc)
 
     def test_lint_invalid_whitespace_empty(self):
