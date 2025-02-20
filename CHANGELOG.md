@@ -7,6 +7,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- Nothing yet
+
+## [0.6.2] - 2025-02-20
+
 ### Added
 
 - General CSV import script now shows new uncategorized item count as a warning
@@ -170,7 +174,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Everything!
 
-[Unreleased]: https://github.com/nickjj/plutus/compare/0.6.1...HEAD
+[Unreleased]: https://github.com/nickjj/plutus/compare/0.6.2...HEAD
+[0.6.2]: https://github.com/nickjj/plutus/compare/0.6.1...0.6.2
 [0.6.1]: https://github.com/nickjj/plutus/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/nickjj/plutus/compare/0.5.2...0.6.0
 [0.5.2]: https://github.com/nickjj/plutus/compare/0.5.1...0.5.2
