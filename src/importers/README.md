@@ -193,6 +193,15 @@ screen.
 There were 60 new items and these could be added to your profile pending your
 human review.
 
+```
+WARNING: 2 new items are uncategorized as TODOUnknown
+```
+
+There's also a warning that shows you a count of your uncategorized items. You
+can scroll up in your terminal to find them or pipe the output of this script
+to grep such as `... | grep TODOUnknown` to quickly see them all. The warning
+is meant to let you know they exist at a glance.
+
 ```sh
 PLUTUS_PROFILE="/tmp/plutus-import-general-csv-ChaseChecking-ignored.csv" plutus show --summary-with-items --sort category
 PLUTUS_PROFILE="/tmp/plutus-import-general-csv-ChaseChecking-skipped.csv" plutus show --summary-with-items --sort category
@@ -269,8 +278,8 @@ You can also meet somewhere in the middle by filtering on common credit card
 categories that exist in your bank's CSV file. This way everything gets
 bucketed into your customized categories and you're leaning on your credit card
 company to do the heavy lifting to categorize items correctly. Then you can
-write custom filters to make adjustments. Just make sure your more specific
-filters are defined before the general ones because the first match wins.
+write custom filters to make adjustments. Make sure your more specific filters
+are defined before the general ones because the first match wins.
 
 Another approach would be the 80 / 20 rule. Write filters for things that need
 to be correct like business income or expenses and leave the rest as

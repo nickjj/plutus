@@ -7,6 +7,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- General CSV import script now shows new uncategorized item count as a warning
+
 ### Changed
 
 - Improve error message when a parsing error happens by including the headers

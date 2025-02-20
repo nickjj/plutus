@@ -39,6 +39,7 @@ CONFIG = {
 }
 
 PLUTUS_HEADERS = "Date,Category,Amount,Method,Notes"
+UNCATEGORIZED_LABEL = "TODOUnknown"
 
 # Do the best we can to extract the date from a string, some formats like
 # GnuCash input the day before the date such as Thu, 02/18/2025, this attempts
@@ -268,7 +269,7 @@ def map_category(raw_item):
         if re.search(key, raw_item):
             return value
 
-    return "TODOUnknown"
+    return UNCATEGORIZED_LABEL
 
 
 def write_temp_output_file(path, items):
@@ -292,8 +293,9 @@ def load_imported_csv(args):
     new_count = 0
     skipped_count = 0
     total_line_count = 0
-
     amount_total = 0
+
+    uncategorized_new_count = 0
 
     with open(args.input) as csvfile:
         output_1, output_2 = tee(csvfile)
@@ -404,11 +406,16 @@ Here's the stack trace:
             new_lines.append(f"{line}\n")
 
             if args.summary == "":
+                uncategorized_match = ',"TODOUnknown",'
+
+                if uncategorized_match in line:
+                    uncategorized_new_count += 1
+
                 # We only want the total to match what's included.
                 amount_total += amount
                 print(
                     line.replace(
-                        ',"TODOUnknown",',
+                        uncategorized_match,
                         f",{COLOR_RED}{category_quoted}{COLOR_RESET},",
                     )
                 )
@@ -460,8 +467,16 @@ You can use --summary 1,2 or any column indexes to show only those columns"""  #
         f"""OK: {ignored_count} ignored items were written to {TEMP_OUTPUT_IGNORED_FILE}
 OK: {skipped_count} skipped items were written to {TEMP_OUTPUT_SKIPPED_FILE}
 OK: {new_count} new items were written to {TEMP_OUTPUT_NEW_FILE}
-OK: {total_line_count - 1} items were parsed
+OK: {total_line_count - 1} items were parsed"""  # noqa: E501
+    )
 
+    if uncategorized_new_count > 0:
+        print(
+            f"\nWARNING: {uncategorized_new_count} new items are uncategorized as {UNCATEGORIZED_LABEL}"  # noqa: E501
+        )
+
+    print(
+        """
 -------------------------------------------------------------------------------
 Verify everything is correct
 -------------------------------------------------------------------------------
