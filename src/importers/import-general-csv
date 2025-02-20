@@ -205,10 +205,45 @@ def validate_item(value):
 
 def validate_config():
     if not os.path.isfile(SCRIPT_CONFIG):
+        default_config = """[Ignore]
+# These are meant to be reference points, they may or may not apply to your
+# import files. Feel free to adjust them as needed.
+#_ = ^DEBIT,.+INTERACTIVE BROK ACH TRANSF REQ :.+  WEB ID: .+ACH_DEBIT.+
+#_ = ^DEBIT,.+CHASE CREDIT CRD AUTOPAY                    PPD ID: .+ACH_DEBIT.+
+#_ = ^.+,AUTOMATIC PAYMENT - THANK,,Payment,.+
+#_ = ^DEBIT,.+Payment to Chase card ending in .+ .+LOAN_PMT.+
+#_ = ^DSLIP,.+DEPOSIT  ID NUMBER .+DEPOSIT.+
+#_ = ^DEBIT,.+WITHDRAWAL .+MISC_DEBIT.+
+#_ = ^DEBIT,.+ATM WITHDRAWAL .+ATM.+
+#_ = ^DSLIP,.+Cash Redemption.+DEPOSIT.+
+
+# If your main GnuCash account name is "Assets", this ignores the 2nd transaction
+# due to double-entry bookkeeping. Modify this as needed.
+#_ = ,"Assets","n",
+
+[Map_Categories]
+# These are all categorized into personal expenses by default to avoid
+# accidentally putting something as a business expense, but quite a lot of
+# these could end up being business expenses such as travel, dining out or
+# utilities. For these situations, create more specific filters above and
+# consider including the description + amount to avoid false positives.
+#
+# Uncomment and modify these at your discretion, they are references.
+#Personal Expenses:Education = ^.+,Education,(Sale|Return),.+
+#Personal Expenses:Travel = ^.+,(Travel|Gas),(Sale|Return),.+
+#Personal Expenses:Entertainment = ^.+,Entertainment,(Sale|Return),.+
+#Personal Expenses:Utilities = ^.+,Bills & Utilities,(Sale|Return),.+
+#Personal Expenses:Health & Wellness = ^.+,Health & Wellness,(Sale|Return),.+
+#Personal Expenses:Shopping = ^.+,Shopping,(Sale|Return),.+
+#Personal Expenses:Groceries = ^.+,Groceries,(Sale|Return),.+
+#Personal Expenses:Dining Out = ^.+,Food & Drink,(Sale|Return),.+
+#Personal Expenses:Bank = ^.+,Fees & Adjustments,(Fee|Adjustment),.+
+"""  # noqa: E501
+
         os.makedirs(SCRIPT_CONFIG_DIR, exist_ok=True)
 
         with open(SCRIPT_CONFIG, "w") as file:
-            file.write("[Ignore]\n\n[Map_Categories]\n")
+            file.write(default_config)
 
     current_section = None
 
@@ -542,8 +577,11 @@ Regex filters for ignoring items and mapping categories
 
 This config file is stored in: {SCRIPT_CONFIG}
 
+There's a bunch of examples commented out by default so you can see them.
+
 The filters will be run against the raw line from your CSV input file, this
-allows you to be very strict and safe with your regular expressions.
+allows you to be very strict and safe with your regular expressions. The first
+match will win.
 
 Add as many rules as you'd like under each section. In both cases the value
 is a regular expression. The key will be different depending on the section.

@@ -10,6 +10,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - General CSV import script now shows new uncategorized item count as a warning
+- Example `[Ignore]` and `[Map_Categories]` comments to the General CSV import config
 
 ### Changed
 

@@ -101,8 +101,10 @@ because doing all of that by hand for hundreds or thousands of items would be
 painful.
 
 Both filters can be set in `~/.config/plutus/import-general-csv.ini` and you
-can have as many as you'd like. Each entry goes on its own new line in its
-respective section:
+can have as many as you'd like. The default config file that gets generated has
+a bunch of commented out examples to use as a reference.
+
+Each entry goes on its own new line in its respective section:
 
 ```ini
 [Ignore]
