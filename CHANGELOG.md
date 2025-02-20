@@ -34,7 +34,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-- For the `show` command, either `--summary` or `--summaey-with-items` can be set but not both
+- For the `show` command, either `--summary` or `--summary-with-items` can be set but not both
 - Rename `Transportation` to `Travel` in the demo categories
 
 ### Removed
