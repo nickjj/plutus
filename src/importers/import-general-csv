@@ -38,7 +38,7 @@ CONFIG = {
     "Map_Categories": {},
 }
 
-PLUTUS_HEADERS = "Date,Category,Amount,Method,Notes"
+PLUTUS_HEADERS = "Date,Category,Amount,Method,Description,Notes"
 UNCATEGORIZED_LABEL = "TODOUnknown"
 
 # Do the best we can to extract the date from a string, some formats like
@@ -52,6 +52,47 @@ REGEX_DATE_PATTERN = re.compile(f"({REGEX_DATE})")
 # Extract the amount and remove any formatting.
 REGEX_AMOUNT = r"[^-0-9.()]"
 REGEX_AMOUNT_PATTERN = re.compile(REGEX_AMOUNT)
+
+
+def parse_raw_csv_line(line):
+    # This was 99% written by ChatGPT, thanks AI!
+    fields = []
+    current_field = []
+    inside_quotes = False
+    length = len(line)
+
+    i = 0
+    while i < length:
+        char = line[i]
+
+        if char == '"':
+            # Handle escaped quote ("").
+            if inside_quotes and i + 1 < length and line[i + 1] == '"':
+                # Add the single opening quote to the current field.
+                current_field.append('"')
+
+                # Skip the next quote.
+                i += 1
+            else:
+                # Toggle inside_quotes flag.
+                inside_quotes = not inside_quotes
+
+                # Add the single closing quote to the current field.
+                current_field.append(char)
+        # Comma outside of quotes indicates end of the field.
+        elif char == "," and not inside_quotes:
+            fields.append("".join(current_field))
+            current_field = []
+        else:
+            # Append normal characters to the current field.
+            current_field.append(char)
+
+        i += 1
+
+    # Append the last field.
+    fields.append("".join(current_field))
+
+    return fields
 
 
 def validate_input(value):
@@ -108,21 +149,30 @@ def validate_date(value):
 
 def validate_col_indexes(value):
     value = value.strip()
+    comma_count = value.count(",")
 
-    if value.count(",") != 2:
-        msg = f"'{value}' didn't have exactly 2 commas"
+    if comma_count != 2 and comma_count != 3:
+        msg = f"'{value}' didn't have exactly 2 or 3 commas"
         raise argparse.ArgumentTypeError(msg)
 
     try:
-        date, amount, notes = value.split(",")
+        value_parts = value.split(",")
+
+        date = value_parts[0]
+        amount = value_parts[1]
+        description = value_parts[2]
 
         int(date.strip())
         int(amount.strip())
-        int(notes.strip())
+        int(description.strip())
+
+        if comma_count == 3:
+            notes = value_parts[3]
+            int(notes.strip())
 
         return value
     except Exception:
-        msg = f"'{value}' doesn't appear to have 2 integer column indexes"
+        msg = f"'{value}' doesn't appear to have 2 or 3 integer column indexes"
         raise argparse.ArgumentTypeError(msg)
 
 
@@ -289,8 +339,22 @@ def ignore_category(raw_item):
     return False
 
 
+def duplicate_raw_lines(input):
+    lines_seen = set()
+    duplicated_lines = []
+
+    with open(input) as file:
+        for line in file:
+            if line in lines_seen:
+                duplicated_lines.append(line)
+
+            lines_seen.add(line)
+
+    return duplicated_lines
+
+
 def skip_item(profile_path, plutus_item):
-    plutus_item_without_notes = ",".join(plutus_item.split(",")[:-1])
+    plutus_item_without_notes = parse_raw_csv_line(plutus_item)[:-1]
 
     with open(profile_path) as file:
         if f"{plutus_item_without_notes}," in file.read():
@@ -321,16 +385,19 @@ def load_imported_csv(args):
     input_headers_mapping = ""
 
     ignored_lines = []
-    new_lines = []
     skipped_lines = []
+    new_lines = []
 
-    ignored_count = 0
-    new_count = 0
-    skipped_count = 0
     total_line_count = 0
     amount_total = 0
-
+    new_count = 0
     uncategorized_new_count = 0
+
+    uncategorized_match = ',"TODOUnknown",'
+
+    duplicated_lines = duplicate_raw_lines(args.input)
+    duplicated_items = set()
+    duplicated_count = len(duplicated_lines)
 
     with open(args.input) as csvfile:
         output_1, output_2 = tee(csvfile)
@@ -350,19 +417,16 @@ def load_imported_csv(args):
                 continue
 
             try:
-                date_col, amount_col, notes_col = args.input_col_indexes.split(
-                    ","
-                )
-                date_col = int(date_col.strip())
-                amount_col = int(amount_col.strip())
-                notes_col = int(notes_col.strip())
+                col_parts = args.input_col_indexes.split(",")
 
+                date_col = int(col_parts[0].strip())
                 date = convert_date_format(item[date_col], args.input_date)
 
                 category_name = map_category(raw_item)
                 category_ignored = ignore_category(raw_item)
                 category_quoted = f'"{category_name}"'
 
+                amount_col = int(col_parts[1].strip())
                 amount = REGEX_AMOUNT_PATTERN.sub("", item[amount_col])
 
                 if item[amount_col][0] == "(":
@@ -372,25 +436,24 @@ def load_imported_csv(args):
 
                 method = f'"{args.payment_method}"'
 
-                notes = (
-                    item[notes_col]
-                    .replace("\n", "")
-                    .replace('"', "")
-                    .replace(",", ";")
-                    .replace(":", ";")
-                    .strip()
-                )
-                if notes != "":
-                    notes = f'"{notes}"'
+                description_col = int(col_parts[2].strip())
+                description = item[description_col].replace("\n", "").strip()
+                if description != "":
+                    description = f'"{description}"'
+
+                if len(col_parts) == 4:
+                    notes_col = int(col_parts[3].strip())
+                    notes = item[notes_col].replace("\n", "").strip()
+                    if notes != "":
+                        notes = f'"{notes}"'
+                else:
+                    notes = ""
 
                 total_line_count += 1
 
                 validate_item(item)
 
-                line = (
-                    f"{date},{category_quoted},{amount:.2f},{method},{notes}"
-                )
-
+                line = f"{date},{category_quoted},{amount:.2f},{method},{description},{notes}"  # noqa: E501
             except Exception:
                 comma_count = raw_item.count(",")
 
@@ -427,22 +490,24 @@ Here's the stack trace:
 
             # It's been explicitly ignored, so let's skip it.
             if category_ignored:
-                ignored_count += 1
                 ignored_lines.append(f"{line}\n")
                 continue
 
-            # Now it might have duplicates.
+            # Now it might already be tracked by Plutus.
             if skip_item(args.profile, line):
-                skipped_count += 1
                 skipped_lines.append(f"{line}\n")
                 continue
 
-            new_count += 1
             new_lines.append(f"{line}\n")
+            new_count += 1
+
+            # Now we want to turn raw duplicate lines into items.
+            if duplicated_lines:
+                for raw_line in duplicated_lines:
+                    if raw_item == raw_line:
+                        duplicated_items.add(f"{line}\n")
 
             if args.summary == "":
-                uncategorized_match = ',"TODOUnknown",'
-
                 if uncategorized_match in line:
                     uncategorized_new_count += 1
 
@@ -496,18 +561,35 @@ You can use --summary 1,2 or any column indexes to show only those columns"""  #
 
     write_temp_output_file(TEMP_OUTPUT_IGNORED_FILE, ignored_lines)
     write_temp_output_file(TEMP_OUTPUT_SKIPPED_FILE, skipped_lines)
+    write_temp_output_file(TEMP_OUTPUT_DUPLICATED_FILE, duplicated_items)
     write_temp_output_file(TEMP_OUTPUT_NEW_FILE, new_lines)
 
     print(
-        f"""OK: {ignored_count} ignored items were written to {TEMP_OUTPUT_IGNORED_FILE}
-OK: {skipped_count} skipped items were written to {TEMP_OUTPUT_SKIPPED_FILE}
-OK: {new_count} new items were written to {TEMP_OUTPUT_NEW_FILE}
-OK: {total_line_count - 1} items were parsed"""  # noqa: E501
+        f"""OK: {len(ignored_lines)} ignored items were written to {TEMP_OUTPUT_IGNORED_FILE}
+OK: {len(skipped_lines)} skipped items were written to {TEMP_OUTPUT_SKIPPED_FILE}
+OK: {len(duplicated_items)} duplicated items were written to {TEMP_OUTPUT_DUPLICATED_FILE}
+OK: {len(new_lines)} new items were written to {TEMP_OUTPUT_NEW_FILE}
+OK: {total_line_count - 1} items were processed"""  # noqa: E501
     )
 
     if uncategorized_new_count > 0:
         print(
             f"\nWARNING: {uncategorized_new_count} new items are uncategorized as {UNCATEGORIZED_LABEL}"  # noqa: E501
+        )
+
+    if duplicated_count > 0:
+        print(
+            f"""
+WARNING: {len(duplicated_items)} new items had 1 or more duplicate lines in your input file
+  They are printed above and saved to both the duplicated and new files. You
+  can check the duplicated file to quickly see which lines were duplicated.
+
+  This is likely ok and happens when your raw imported line was found more than
+  once such as when you make 2 purchases on the same day for the same amount
+  from the same merchant. It might be rare but it can happen.
+
+  This is being presented as a warning so you can confirm it's legit and not
+  a copy / paste or export issue where they ended up accidentally duplicated."""  # noqa: E501
         )
 
     print(
@@ -518,6 +600,7 @@ Verify everything is correct
 
 PLUTUS_PROFILE="{TEMP_OUTPUT_IGNORED_FILE}" plutus show --summary-with-items --sort category
 PLUTUS_PROFILE="{TEMP_OUTPUT_SKIPPED_FILE}" plutus show --summary-with-items --sort category
+PLUTUS_PROFILE="{TEMP_OUTPUT_DUPLICATED_FILE}" plutus show --summary-with-items --sort category
 PLUTUS_PROFILE="{TEMP_OUTPUT_NEW_FILE}" plutus show --summary-with-items --sort category
 
 You should also run the lint command to verify everything was parsed correctly."""  # noqa: E501
@@ -648,7 +731,7 @@ This tool attempts to automate as much as it can and give you everything you
 need to verify the results in a way that provides a high amount of confidence.
 
 You never have to worry about something being accidentally not added or added
-because all 3 temporary files exist showing each one and this tool will never
+because all temporary files exist showing each one and this tool will never
 directly edit your real profile. You can review and adjust anything as needed.
 
 Truthfully it's not bad. I fully ignored and categorized an entire year's
@@ -712,7 +795,7 @@ parser = argparse.ArgumentParser(
       items. This script contains a lot of help after you run it!
 
       # Chase's checking export uses the second, fourth and third columns to
-      # store the date, notes and amount. We don't need to supply --input-date
+      # store the date, amount and description. We don't need to supply --input-date
       # here since the default format of %m/%d/%Y is how Chase supplies dates.
       #
       # Chase's credit card export uses columns 0,5,2 instead of 1,3,2 btw.
@@ -735,9 +818,9 @@ parser = argparse.ArgumentParser(
         --profile ~/business/plutus.csv \\
         --summary
 
-      # GnuCash's export uses a different set of columns to store the date, amount
-      # and notes. We also don't need to supply --input-date here since the
-      # default format of %m/%d/%Y is how GnuCash supplies dates.
+      # GnuCash's export uses a different set of columns to store the date,
+      # amount and description. We also don't need to supply --input-date here
+      # since the default format of %m/%d/%Y is how GnuCash supplies dates.
       #
       # Since GnuCash will contain items with potentially many different
       # methods (ChaseSapphire, Stripe, PayPal, etc.), we'll go with TODOAssorted
@@ -750,14 +833,15 @@ parser = argparse.ArgumentParser(
         --profile ~/business/plutus.csv
 
       # Like the above 3 examples, we'll pick which columns to read the date,
-      # amount and notes from. Now we're also supplying a custom date strftime
-      # format that this CSV file uses.
+      # amount and description from but we'll also include a 4th column to
+      # import notes. Now we're also supplying a custom date strftime format
+      # that this CSV file uses.
       #
       # We've also decided to skip printing debug information and the extra
       # help / guides that this script outputs by default.
       {SCRIPT_NAME} \\
         --input /tmp/unknown.csv \\
-        --input-col-indexes 3,5,6 \\
+        --input-col-indexes 3,5,6,8 \\
         --input-date "%d-%m-%Y" \\
         --payment-method AcmeBankChecking \\
         --profile ~/business/plutus.csv \\
@@ -796,7 +880,7 @@ parser.add_argument(
     required=True,
     type=validate_col_indexes,
     metavar="INDEXES",
-    help="Exported date, amount and notes column indexes as a comma separated list (ie. 1,3,2)",  # noqa: E501
+    help="Exported date, amount, description and optionally a notes column indexes as a comma separated list (ie. 1,3,2)",  # noqa: E501
 )
 
 parser.add_argument(
@@ -852,12 +936,15 @@ args = parser.parse_args()
 validate_config()
 
 TEMP_OUTPUT_PATH = f"/tmp/plutus-{SCRIPT_NAME}"
-TEMP_OUTPUT_NEW_FILE = f"{TEMP_OUTPUT_PATH}-{args.payment_method}-new.csv"
-TEMP_OUTPUT_SKIPPED_FILE = (
-    f"{TEMP_OUTPUT_PATH}-{args.payment_method}-skipped.csv"
-)
 TEMP_OUTPUT_IGNORED_FILE = (
     f"{TEMP_OUTPUT_PATH}-{args.payment_method}-ignored.csv"
 )
+TEMP_OUTPUT_SKIPPED_FILE = (
+    f"{TEMP_OUTPUT_PATH}-{args.payment_method}-skipped.csv"
+)
+TEMP_OUTPUT_DUPLICATED_FILE = (
+    f"{TEMP_OUTPUT_PATH}-{args.payment_method}-duplicated.csv"
+)
+TEMP_OUTPUT_NEW_FILE = f"{TEMP_OUTPUT_PATH}-{args.payment_method}-new.csv"
 
 load_imported_csv(args)

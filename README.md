@@ -106,33 +106,33 @@ pattern:**
 ```
 plutus show 2025
 
---------------------------------------------------------------------------------------------------------------------------------
-   | Date       | Category                                | Amount     | Total      | Method      | Notes
---------------------------------------------------------------------------------------------------------------------------------
-1  | 2025-02-05 | Personal Expenses:Entertainment:Games   | -$5.03     | -$5.03     | FreedomCard | Hollow Knight
-2  | 2025-02-28 | Personal Expenses:Travel                | -$1,244.03 | -$1,249.06 | FreedomCard | Plane trip to Antartica
-3  | 2025-03-17 | Personal Expenses:Groceries             | -$14.14    | -$1,263.20 | FreedomCard |
-4  | 2025-04-30 | Personal Expenses:Groceries             | -$84.21    | -$1,347.41 | FreedomCard |
-5  | 2025-05-02 | Tax:Refunds                             | $1,614.00  | $266.59    | ACH         | Federal
-6  | 2025-05-04 | Tax:Refunds                             | $236.00    | $502.59    | ACH         | NY State
-7  | 2025-05-19 | Personal Expenses:Entertainment:Netflix | -$16.83    | $485.76    | FreedomCard |
-8  | 2025-06-05 | Income:Merch                            | $360.28    | $846.04    | Zelle       | Programming stickers
-9  | 2025-07-06 | Income:Consulting                       | $300.00    | $1,146.04  | Zelle       | Johnny Tables (Flask)
-10 | 2025-07-14 | Personal Expenses:Entertainment:Games   | -$10.17    | $1,135.87  | FreedomCard | Ori and the Blind Forest
-11 | 2025-07-16 | Income:Consulting                       | $600.00    | $1,735.87  | ACH         | Acme Inc (Docker deployment)
-12 | 2025-08-01 | Business Expenses:Affiliates            | -$17.70    | $1,718.17  | Zelle       | William Thatcher
-13 | 2025-08-01 | Business Expenses:Hosting:DigitalOcean  | -$12.00    | $1,706.17  | FreedomCard |
-14 | 2025-08-18 | Business Expenses:Rent                  | -$3,200.00 | -$1,493.83 | Cash        | 2 months
-15 | 2025-09-01 | Business Expenses:Affiliates            | -$24.90    | -$1,518.73 | Zelle       | William Thatcher
-16 | 2025-09-01 | Business Expenses:Hosting:DigitalOcean  | -$12.00    | -$1,530.73 | FreedomCard |
-17 | 2025-09-03 | Business Expenses:Hosting:Domain Names  | -$10.95    | -$1,541.68 | PayPal      | nickjanetakis.com
-18 | 2025-10-11 | Income:Consulting                       | $1,500.00  | -$41.68    | PayPal      | Alice (Docker)
-19 | 2025-10-17 | Income:Consulting                       | $600.00    | $558.32    | Zelle       | Johnny Tables (Flask)
-20 | 2025-10-30 | Income:Affiliates:Amazon                | $123.45    | $681.77    | ACH         |
-21 | 2025-11-30 | Income:Affiliates:Amazon                | $345.67    | $1,027.44  | ACH         |
-22 | 2025-11-30 | Income:Affiliates:DigitalOcean          | $25.00     | $1,052.44  | ACH         |
-23 | 2025-11-30 | Income:Affiliates:DigitalOcean          | $50.00     | $1,102.44  | ACH         |
-24 | 2025-12-30 | Income:Affiliates:Amazon                | $234.56    | $1,337.00  | ACH         |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   | Date       | Category                               | Amount     | Total      | Method      | Description                         | Notes
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1  | 2025-02-05 | Personal Expenses:Entertainment:Games  | -$5.03     | -$5.03     | FreedomCard | WL *Steam Purchase                  | Hollow Knight
+2  | 2025-02-28 | Personal Expenses:Travel               | -$1,244.03 | -$1,249.06 | FreedomCard | ICEAIR     000AX7DU80               | Flying to Antartica
+3  | 2025-03-17 | Personal Expenses:Groceries            | -$14.14    | -$1,263.20 | FreedomCard | FARMER'S MARKET                     |
+4  | 2025-04-30 | Personal Expenses:Groceries            | -$84.21    | -$1,347.41 | FreedomCard | FARMER'S MARKET                     |
+5  | 2025-05-02 | Tax:Refunds                            | $1,614.00  | $266.59    | Checking    | IRS     USATAXPYMNT WID: 5557652752 | for 2024
+6  | 2025-05-04 | Tax:Refunds                            | $236.00    | $502.59    | Checking    | NYS DTP PIT    Tax Paymnt 00034587  | for 2024
+7  | 2025-05-19 | Personal Expenses:Entertainment        | -$16.83    | $485.76    | FreedomCard | NETFLIX.COM                         |
+8  | 2025-06-05 | Income:Merch                           | $360.28    | $846.04    | Zelle       | Zelle payment from STICKERS INC.    | Programming stickers
+9  | 2025-07-06 | Income:Consulting                      | $300.00    | $1,146.04  | Zelle       | Zelle payment from JONNY TABLES     | Helped with Flask
+10 | 2025-07-14 | Personal Expenses:Entertainment:Games  | -$10.17    | $1,135.87  | FreedomCard | WL *Steam Purchase                  | Ori and the Blind Forest
+11 | 2025-07-16 | Income:Consulting                      | $600.00    | $1,735.87  | Checking    | ACME INC. PPD ID: 5551234567890     | Helped with Docker
+12 | 2025-08-01 | Business Expenses:Hosting:DigitalOcean | -$12.00    | $1,723.87  | FreedomCard | DIGITALOCEAN.COM                    |
+13 | 2025-08-01 | Business Expenses:Services             | -$17.70    | $1,706.17  | Zelle       | Zelle payment to WILLIAM THATCHER   | Jousting lessons
+14 | 2025-08-18 | Business Expenses:Rent                 | -$3,200.00 | -$1,493.83 | Cash        |                                     | 2 months
+15 | 2025-09-01 | Business Expenses:Hosting:DigitalOcean | -$12.00    | -$1,505.83 | FreedomCard | DIGITALOCEAN.COM                    |
+16 | 2025-09-01 | Business Expenses:Services             | -$24.90    | -$1,530.73 | Zelle       | Zelle payment to WILLIAM THATCHER   | Jousting lessons
+17 | 2025-09-03 | Business Expenses:Hosting:Domain Names | -$10.95    | -$1,541.68 | PayPal      | 2A325584B6472273W                   | nickjanetakis.com, NameSilo
+18 | 2025-10-11 | Income:Consulting                      | $1,500.00  | -$41.68    | PayPal      | 55517238SB795472B                   | alice@example.com, helped with Flask
+19 | 2025-10-17 | Income:Consulting                      | $600.00    | $558.32    | Zelle       | Zelle payment from JONNY TABLES     | Helped with Flask
+20 | 2025-10-30 | Income:Affiliates:Amazon               | $123.45    | $681.77    | Checking    | AMAZON.COM, INC. PAYMENTS           |
+21 | 2025-11-30 | Income:Affiliates:Amazon               | $345.67    | $1,027.44  | Checking    | AMAZON.COM, INC. PAYMENTS           |
+22 | 2025-11-30 | Income:Affiliates:DigitalOcean         | $25.00     | $1,052.44  | PayPal      | 0Y420200EZ1797431                   | do@dexample.com
+23 | 2025-11-30 | Income:Affiliates:DigitalOcean         | $50.00     | $1,102.44  | PayPal      | 27T60611H28616305                   | do@example.com
+24 | 2025-12-30 | Income:Affiliates:Amazon               | $234.56    | $1,337.00  | Checking    | AMAZON.COM, INC. PAYMENTS           |
 ```
 
 **Show items from tax year 2025 Q4 and sort largest amounts on the bottom,
@@ -141,19 +141,19 @@ reverse it with `--sort amount-`:**
 ```
 plutus show 2025-q4 --sort amount
 
-----------------------------------------------------------------------------------------------------------------------
-   | Date       | Category                               | Amount    | Total     | Method      | Notes
-----------------------------------------------------------------------------------------------------------------------
-1  | 2025-09-01 | Business Expenses:Affiliates           | -$24.90   | -$24.90   | Zelle       | William Thatcher
-2  | 2025-09-01 | Business Expenses:Hosting:DigitalOcean | -$12.00   | -$36.90   | FreedomCard |
-3  | 2025-09-03 | Business Expenses:Hosting:Domain Names | -$10.95   | -$47.85   | PayPal      | nickjanetakis.com
-4  | 2025-11-30 | Income:Affiliates:DigitalOcean         | $25.00    | -$22.85   | ACH         |
-5  | 2025-11-30 | Income:Affiliates:DigitalOcean         | $50.00    | $27.15    | ACH         |
-6  | 2025-10-30 | Income:Affiliates:Amazon               | $123.45   | $150.60   | ACH         |
-7  | 2025-12-30 | Income:Affiliates:Amazon               | $234.56   | $385.16   | ACH         |
-8  | 2025-11-30 | Income:Affiliates:Amazon               | $345.67   | $730.83   | ACH         |
-9  | 2025-10-17 | Income:Consulting                      | $600.00   | $1,330.83 | Zelle       | Johnny Tables (Flask)
-10 | 2025-10-11 | Income:Consulting                      | $1,500.00 | $2,830.83 | PayPal      | Alice (Docker)
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   | Date       | Category                               | Amount    | Total     | Method      | Description                       | Notes
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1  | 2025-09-01 | Business Expenses:Services             | -$24.90   | -$24.90   | Zelle       | Zelle payment to WILLIAM THATCHER | Jousting lessons
+2  | 2025-09-01 | Business Expenses:Hosting:DigitalOcean | -$12.00   | -$36.90   | FreedomCard | DIGITALOCEAN.COM                  |
+3  | 2025-09-03 | Business Expenses:Hosting:Domain Names | -$10.95   | -$47.85   | PayPal      | 2A325584B6472273W                 | nickjanetakis.com, NameSilo
+4  | 2025-11-30 | Income:Affiliates:DigitalOcean         | $25.00    | -$22.85   | PayPal      | 0Y420200EZ1797431                 | do@dexample.com
+5  | 2025-11-30 | Income:Affiliates:DigitalOcean         | $50.00    | $27.15    | PayPal      | 27T60611H28616305                 | do@example.com
+6  | 2025-10-30 | Income:Affiliates:Amazon               | $123.45   | $150.60   | Checking    | AMAZON.COM, INC. PAYMENTS         |
+7  | 2025-12-30 | Income:Affiliates:Amazon               | $234.56   | $385.16   | Checking    | AMAZON.COM, INC. PAYMENTS         |
+8  | 2025-11-30 | Income:Affiliates:Amazon               | $345.67   | $730.83   | Checking    | AMAZON.COM, INC. PAYMENTS         |
+9  | 2025-10-17 | Income:Consulting                      | $600.00   | $1,330.83 | Zelle       | Zelle payment from JONNY TABLES   | Helped with Flask
+10 | 2025-10-11 | Income:Consulting                      | $1,500.00 | $2,830.83 | PayPal      | 55517238SB795472B                 | alice@example.com, helped with Flask
 ```
 
 **Aggregate amount totals for each category (default), date, amount, method or
@@ -162,25 +162,25 @@ notes:**
 ```
 plutus show --summary
 
---------------------------------------------------------------------------------------
-   | Category                                | Amount     | Total      | Items | Total
---------------------------------------------------------------------------------------
-1  | Business Expenses:Affiliates            | -$42.60    | -$42.60    | 2     | 2
-2  | Business Expenses:Dining Out            | -$56.02    | -$98.62    | 1     | 3
-3  | Business Expenses:Hosting:DigitalOcean  | -$24.00    | -$122.62   | 2     | 5
-4  | Business Expenses:Hosting:Domain Names  | -$10.95    | -$133.57   | 1     | 6
-5  | Business Expenses:Rent                  | -$4,800.00 | -$4,933.57 | 2     | 8
-6  | Income:Affiliates:Amazon                | $703.68    | -$4,229.89 | 3     | 11
-7  | Income:Affiliates:DigitalOcean          | $100.00    | -$4,129.89 | 3     | 14
-8  | Income:Consulting                       | $3,000.00  | -$1,129.89 | 4     | 18
-9  | Income:Merch                            | $360.28    | -$769.61   | 1     | 19
-10 | Income:Sponsors:OpenSource              | $0.01      | -$769.60   | 1     | 20
-11 | Personal Expenses:Dining Out            | -$10.00    | -$779.60   | 1     | 21
-12 | Personal Expenses:Entertainment:Games   | -$15.20    | -$794.80   | 2     | 23
-13 | Personal Expenses:Entertainment:Netflix | -$16.83    | -$811.63   | 1     | 24
-14 | Personal Expenses:Groceries             | -$182.56   | -$994.19   | 3     | 27
-15 | Personal Expenses:Travel                | -$1,296.04 | -$2,290.23 | 3     | 30
-16 | Tax:Refunds                             | $1,850.00  | -$440.23   | 2     | 32
+-------------------------------------------------------------------------------------
+   | Category                               | Amount     | Total      | Items | Total
+-------------------------------------------------------------------------------------
+1  | Business Expenses:Dining Out           | -$70.00    | -$70.00    | 1     | 1
+2  | Business Expenses:Hosting:DigitalOcean | -$24.00    | -$94.00    | 2     | 3
+3  | Business Expenses:Hosting:Domain Names | -$10.95    | -$104.95   | 1     | 4
+4  | Business Expenses:Rent                 | -$4,800.00 | -$4,904.95 | 2     | 6
+5  | Business Expenses:Services             | -$42.60    | -$4,947.55 | 2     | 8
+6  | Income:Affiliates:Amazon               | $703.68    | -$4,243.87 | 3     | 11
+7  | Income:Affiliates:DigitalOcean         | $100.00    | -$4,143.87 | 3     | 14
+8  | Income:Consulting                      | $3,000.00  | -$1,143.87 | 4     | 18
+9  | Income:Merch                           | $360.28    | -$783.59   | 1     | 19
+10 | Income:Sponsors:OpenSource             | $0.01      | -$783.58   | 1     | 20
+11 | Personal Expenses:Dining Out           | -$10.00    | -$793.58   | 1     | 21
+12 | Personal Expenses:Entertainment        | -$16.83    | -$810.41   | 1     | 22
+13 | Personal Expenses:Entertainment:Games  | -$15.20    | -$825.61   | 2     | 24
+14 | Personal Expenses:Groceries            | -$182.56   | -$1,008.17 | 3     | 27
+15 | Personal Expenses:Travel               | -$1,296.04 | -$2,304.21 | 3     | 30
+16 | Tax:Refunds                            | $1,850.00  | -$454.21   | 2     | 32
 ```
 
 **Filter only the business expenses category, using `:` helps avoid false
@@ -189,17 +189,17 @@ positive matches:**
 ```
 plutus show "Business Expenses:"
 
---------------------------------------------------------------------------------------------------------------------------
-  | Date       | Category                               | Amount     | Total      | Method       | Notes
---------------------------------------------------------------------------------------------------------------------------
-1 | 2024-07-17 | Business Expenses:Rent                 | -$1,600.00 | -$1,600.00 | Cash         |
-2 | 2024-08-24 | Business Expenses:Dining Out           | -$56.02    | -$1,656.02 | SapphireCard | Meeting with King Midas
-3 | 2025-08-01 | Business Expenses:Affiliates           | -$17.70    | -$1,673.72 | Zelle        | William Thatcher
-4 | 2025-08-01 | Business Expenses:Hosting:DigitalOcean | -$12.00    | -$1,685.72 | FreedomCard  |
-5 | 2025-08-18 | Business Expenses:Rent                 | -$3,200.00 | -$4,885.72 | Cash         | 2 months
-6 | 2025-09-01 | Business Expenses:Affiliates           | -$24.90    | -$4,910.62 | Zelle        | William Thatcher
-7 | 2025-09-01 | Business Expenses:Hosting:DigitalOcean | -$12.00    | -$4,922.62 | FreedomCard  |
-8 | 2025-09-03 | Business Expenses:Hosting:Domain Names | -$10.95    | -$4,933.57 | PayPal       | nickjanetakis.com
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  | Date       | Category                               | Amount     | Total      | Method       | Description                       | Notes
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1 | 2024-07-17 | Business Expenses:Rent                 | -$1,600.00 | -$1,600.00 | Cash         |                                   |
+2 | 2024-08-24 | Business Expenses:Dining Out           | -$70.00    | -$1,670.00 | SapphireCard | GOLDEN CORRAL                     | Dinner with King Midas
+3 | 2025-08-01 | Business Expenses:Hosting:DigitalOcean | -$12.00    | -$1,682.00 | FreedomCard  | DIGITALOCEAN.COM                  |
+4 | 2025-08-01 | Business Expenses:Services             | -$17.70    | -$1,699.70 | Zelle        | Zelle payment to WILLIAM THATCHER | Jousting lessons
+5 | 2025-08-18 | Business Expenses:Rent                 | -$3,200.00 | -$4,899.70 | Cash         |                                   | 2 months
+6 | 2025-09-01 | Business Expenses:Hosting:DigitalOcean | -$12.00    | -$4,911.70 | FreedomCard  | DIGITALOCEAN.COM                  |
+7 | 2025-09-01 | Business Expenses:Services             | -$24.90    | -$4,936.60 | Zelle        | Zelle payment to WILLIAM THATCHER | Jousting lessons
+8 | 2025-09-03 | Business Expenses:Hosting:Domain Names | -$10.95    | -$4,947.55 | PayPal       | 2A325584B6472273W                 | nickjanetakis.com, NameSilo
 ```
 
 **Show the raw contents of the CSV file for 2024**:
@@ -207,15 +207,15 @@ plutus show "Business Expenses:"
 ```
 plutus show 2024 --raw
 
-Date,Category,Amount,Method,Notes
-2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"
-2024-02-28,"Personal Expenses:Travel",-32.00,"FreedomCard","Train to NYC"
-2024-04-30,"Personal Expenses:Groceries",-84.21,"FreedomCard",
-2024-06-09,"Personal Expenses:Dining Out",-10.00,"SapphireCard","Pinneapple Pizza"
-2024-07-17,"Business Expenses:Rent",-1600.00,"Cash",
-2024-08-24,"Business Expenses:Dining Out",-56.02,"SapphireCard","Meeting with King Midas"
-2024-09-15,"Income:Sponsors:OpenSource",0.01,"Venmo","Zero Cool"
-2024-11-30,"Income:Affiliates:DigitalOcean",25.00,"ACH",
+Date,Category,Amount,Method,Description,Notes
+2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","MOBIL 7581245411",
+2024-02-28,"Personal Expenses:Travel",-32.00,"FreedomCard","MTA*LIRR STATION TIX","Visit NYC"
+2024-04-30,"Personal Expenses:Groceries",-84.21,"FreedomCard","FARMER'S MARKET",
+2024-06-09,"Personal Expenses:Dining Out",-10.00,"SapphireCard","LISBOA PIZZA","Pineapple Pizza"
+2024-07-17,"Business Expenses:Rent",-1600.00,"Cash",,
+2024-08-24,"Business Expenses:Dining Out",-70.00,"SapphireCard","GOLDEN CORRAL","Dinner with King Midas"
+2024-09-15,"Income:Sponsors:OpenSource",0.01,"Checking","NY STOCK EXCHANGE ID: 1507","Zero Cool"
+2024-11-30,"Income:Affiliates:DigitalOcean",25.00,"PayPal","69Y39549RO563415Z","do@example.com"
 ```
 
 **I introduced issues into the CSV file on purpose, the linter exposes them
@@ -224,39 +224,44 @@ with color highlighting:**
 ```
 plutus lint
 
-WARNING [EXPENSE_IS_POSITIVE] [L3]: 2024-02-28,"Personal Expenses:Travel",32.00,"FreedomCard","Train to NYC"
-ERROR [DATE_MISMATCH] [L8]: 2024-99-15,"Income:Sponsors:OpenSource",0.01,"Venmo","Zero Cool"
-ERROR [CATEGORY_MISMATCH] [L12]: 2025-03-17,"Personal Expenses::Groceries",-14.14,"FreedomCard",
-ERROR [NOTES_MISMATCH] [L23]: 2025-08-18,"Business Expenses:Rent",-3200.00,"Cash","2 months, commas aren't allow"
+WARNING [EXPENSE_IS_POSITIVE] [L2]: 2024-01-12,"Personal Expenses:Travel",20.01,"FreedomCard","MOBIL 7581245411",
+ERROR [DATE_MISMATCH] [L4]: 2024-99-30,"Personal Expenses:Groceries",-84.21,"FreedomCard","FARMER'S MARKET",
+ERROR [CATEGORY_MISMATCH] [L12]: 2025-03-17,"Personal Expenses::Groceries",-14.14,"FreedomCard","FARMER'S MARKET",
+ERROR [NOTES_MISMATCH] [L25]: 2025-09-01,"Business Expenses:Services",-24.90,"Zelle","Zelle payment to WILLIAM THATCHER",Jousting lessons"
 ERROR [SORT_BY_DATE_MISMATCH]:
 --- yours
 +++ expected
-@@ -4,8 +4,8 @@
- 2024-06-09,"Personal Expenses:Dining Out",-10.00,"SapphireCard","Pinneapple Pizza"
- 2024-07-17,"Business Expenses:Rent",-1600.00,"Cash",
- 2024-08-24,"Business Expenses:Dining Out",-56.02,"SapphireCard","Meeting with King Midas"
-+2024-11-30,"Income:Affiliates:DigitalOcean",25.00,"ACH",
- 2024-99-15,"Income:Sponsors:OpenSource",0.01,"Venmo","Zero Cool"
--2024-11-30,"Income:Affiliates:DigitalOcean",25.00,"ACH",
- 2025-02-05,"Personal Expenses:Entertainment:Games",-5.03,"FreedomCard","Hollow Knight"
- 2025-02-28,"Personal Expenses:Travel",-1244.03,"FreedomCard","Plane trip to Antartica"
- 2025-03-17,"Personal Expenses::Groceries",-14.14,"FreedomCard",
+@@ -1,11 +1,11 @@
+ 2024-01-12,"Personal Expenses:Travel",20.01,"FreedomCard","MOBIL 7581245411",
+ 2024-02-28,"Personal Expenses:Travel",-32.00,"FreedomCard","MTA*LIRR STATION TIX","Visit NYC"
+-2024-99-30,"Personal Expenses:Groceries",-84.21,"FreedomCard","FARMER'S MARKET",
+ 2024-06-09,"Personal Expenses:Dining Out",-10.00,"SapphireCard","LISBOA PIZZA","Pineapple Pizza"
+ 2024-07-17,"Business Expenses:Rent",-1600.00,"Cash",,
+ 2024-08-24,"Business Expenses:Dining Out",-70.00,"SapphireCard","GOLDEN CORRAL","Dinner with King Midas"
+ 2024-09-15,"Income:Sponsors:OpenSource",0.01,"Checking","NY STOCK EXCHANGE ID: 1507","Zero Cool"
+ 2024-11-30,"Income:Affiliates:DigitalOcean",25.00,"PayPal","69Y39549RO563415Z","do@example.com"
++2024-99-30,"Personal Expenses:Groceries",-84.21,"FreedomCard","FARMER'S MARKET",
+ 2025-02-05,"Personal Expenses:Entertainment:Games",-5.03,"FreedomCard","WL *Steam Purchase","Hollow Knight"
+ 2025-02-28,"Personal Expenses:Travel",-1244.03,"FreedomCard","ICEAIR     000AX7DU80","Flying to Antartica"
+ 2025-03-17,"Personal Expenses::Groceries",-14.14,"FreedomCard","FARMER'S MARKET",
 
 4 linting errors occurred, here's all of the rules to check into:
 
+------------------------------------------------------------------------------
+Validation rules used for linting
+------------------------------------------------------------------------------
 CSV_HEADERS_MISMATCH
-  - CSV headers match Date,Category,Amount,Method,Notes
+  - CSV headers match Date,Category,Amount,Method,Description,Notes
 
 PARSE_FAILURE
-  - Items have exactly 4 commas (5 fields)
+  - Items have exactly 6 fields
 
 WHITESPACE_MISMATCH
   - Item fields have no leading or trailing whitespace
-  - Item fields cannot be empty except for notes
 
 DATE_MISMATCH
   - Dates match ^\d{4}-\d{2}-\d{2}$, can be parsed into a date and are not quoted
-  - ^\d{4}-q(1|2|3|4)$ is also accepted for easy quarterly tax filtering
+  - ^\^?\d{4}-q(1|2|3|4).*$ is also accepted for easy quarterly tax filtering
 
 CATEGORY_MISMATCH
   - Categories match (:{2,}|^:|:$|,|'|\"|\\n) and are quoted
@@ -267,8 +272,11 @@ AMOUNT_MISMATCH
 METHOD_MISMATCH
   - Methods match (,|'|:|\"|\\n) and are quoted
 
+DESCRIPTION_MISMATCH
+  - Descriptions are quoted (double quotes) if they exist
+
 NOTES_MISMATCH
-  - Notes match (,|:|\"|\\n) and are quoted if they exist
+  - Notes are quoted (double quotes) if they exist
 
 SORT_BY_DATE_MISMATCH
   - Items are sorted by date
@@ -473,7 +481,7 @@ Here's a breakdown of some of the commands referenced earlier:
     - `:` helps reduce false positives by only including category name matches
 
 You can optionally add `--summary` to get aggregate stats for all items that
-are returned and `--summary [date|category|amount|method|notes]` to group items
+are returned and `--summary [date|category|amount|method|description|notes]` to group items
 by that column.
 
 There's also `--summary-with-items` which returns both a summary and your
@@ -632,13 +640,15 @@ thought process:
 - **Date**
   - YYYY-MM-DD so it's naturally sortable and easy to filter on YYYY or YYYY-MM
 - **Category**
-  - Break items up into filterable sections (income, taxes, business expenses, etc.)
+  - Break items up into filterable categories and subcategories (Income, Business Expenses, Taxes, etc.)
 - **Amount**
-  - A positive or negative amount which gets calculated using addition or subtraction
+  - A positive or negative amount associated with the transaction
 - **Method**
-  - The payment method so you know what to double check at the source
+  - The payment method so you know what to double check at the source (Checking, Zelle, Stripe, etc.)
+- **Description**
+  - Optional details from a bank statement or anything of interest from your CSV source
 - **Notes**
-  - Arbitrary metadata, it can be empty or anything you want such as tags to filter on
+  - Optional metadata to store anything you want such as comments or tags to filter on
 
 If the structure changes over time that's ok, it's just text. Since I use the
 tool all the time I will provide a battle hardened script to do 1-off
@@ -658,8 +668,8 @@ result. These help you gain insight on your numbers.
 ```
 
 Each field is separated by commas and all string fields except the date always
-require quotes for consistency to reduce potential parsing errors. The `lint
---rules` command explains all of the rules in more detail.
+require quotes for consistency to reduce potential parsing errors. The `info
+--lint-rules` command explains all of the rules in more detail.
 
 ## 📑 Importing from external data sources
 

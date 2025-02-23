@@ -1,9 +1,9 @@
 # Plutus: CLI for income and expense tracking
 
-This documentation is specific to importing data into Plutus from other tools
-and data sources.
+This documentation is specific to importing data into Plutus from other data
+sources and tools.
 
-## 📑 Importers
+## ⭐️ Philosophy
 
 All of the importers try to follow these philosophies:
 
@@ -27,12 +27,16 @@ sudo curl \
 This is aimed at importing data from any CSV file that has at least the
 following 3 columns:
 
-- Date
+- **Date**
   - Records when the transaction occurred
-- Amount
+- **Amount**
   - Tracks how much the transaction was for
-- Category or description
-  - So you can map it to a category or note
+- **Description**
+  - Some form of string associated with the transaction
+
+Optionally, if you have a 2nd useful detail in your export you can save it as a
+**Note**. Perhaps this could be an order number or any metadata from a payment
+processor's CSV export that you're importing. It's up to you!
 
 Here's a few use cases on how I used this importer to import thousands of items
 from GnuCash along with bank exports for both a checking account and credit
@@ -56,8 +60,7 @@ CSV export file format:
 
 - The date is column 0 `Fri, 03/01/2024`
 - The amount is column 7 `(12.00)`
-- The note is column 3 `Invoice`
-- The category mapping is column 4 `Business Expenses:DigitalOcean`
+- The description is column 3 `Invoice`
 
 #### Chase Checking (bank)
 
@@ -72,7 +75,7 @@ DEBIT,01/02/2024,"DIGITALOCEAN.COM DIGITALOCEAN. NY            01/01",-12.00,DEB
 
 - The date is column 1 `01/02/2024`
 - The amount is column 3 `-12.00`
-- The note / category mapping is column 2 `DIGITALOCEAN.COM DIGITALOCEAN. NY            01/01`
+- The description is column 2 `DIGITALOCEAN.COM DIGITALOCEAN. NY            01/01`
 
 #### Chase Freedom (credit card)
 
@@ -87,7 +90,7 @@ Transaction Date,Post Date,Description,Category,Type,Amount,Memo
 
 - The date is column 0 `12/01/2024`
 - The amount is column 5 `-12.00`
-- The note / category mapping is column 2 `DIGITALOCEAN.COM`
+- The description is column 2 `DIGITALOCEAN.COM`
 
 #### Regex filtering
 
@@ -138,8 +141,16 @@ import-general-csv \
 ```
 
 Notice `--input-col-indexes 1,3,2` matches up with the Chase checking bank
-CSV file.  We also supply the `--payment-method` so Plutus knows where this
-transaction originated from.
+CSV file.
+
+*If you wanted to save the bank's type (`ACH_DEBIT`, etc.) as a note you could
+also pass in `1,3,2,4` since the zero index column number for that is 4 if you
+scroll up to check the headers. For all bank exports I tend to skip this
+because I like to use Plutus' notes column for personal comments about an
+item.*
+
+We also supply the `--payment-method` so Plutus knows where this transaction
+originated from.
 
 You can keep re-running this script while you add more filters and ensure your
 items get categorized correctly.
@@ -156,7 +167,7 @@ I've broken the output up into sections so we can go over each part.
 There were hundreds of items output but I only included the last one below:
 
 ```
-2024-01-02,"Business Expenses:Hosting:DigitalOcean",-12.00,"ChaseChecking","DIGITALOCEAN.COM DIGITALOCEAN. NY            01/01"
+2024-01-02,"Business Expenses:Hosting:DigitalOcean",-12.00,"ChaseChecking","DIGITALOCEAN.COM DIGITALOCEAN. NY            01/01",
 DEBUG (#60 on L582 - -1337.00): DEBIT,01/02/2024,"DIGITALOCEAN.COM DIGITALOCEAN. NY            01/01",-12.00,DEBIT_CARD,3485.70,,
 ```
 
@@ -172,13 +183,14 @@ transaction to `Business Expenses:Hosting:DigitalOcean`. If the mapping didn't
 work the category will be `TODOUnknown` in red so you know it needs to be
 handled. We're also able to verify the date was parsed correctly, the amount is
 good, the payment method is good and the bank description was included as a
-note.
+description.
 
 ```
 OK: 514 ignored items were written to /tmp/plutus-import-general-csv-ChaseChecking-ignored.csv
 OK: 8 skipped items were written to /tmp/plutus-import-general-csv-ChaseChecking-skipped.csv
-OK: 60 new items were written to /tmp/plutus-import-general-csv-ChaseChecking-new.csv
-OK: 582 items were parsed
+OK: 2 duplicated items were written to /tmp/plutus-import-general-csv-ChaseFreedom-duplicated.csv
+OK: 62 new items were written to /tmp/plutus-import-general-csv-ChaseChecking-new.csv
+OK: 584 items were parsed
 ```
 
 *I used real numbers from my original import.*
@@ -192,8 +204,12 @@ in manually before this script was written. It compares the raw Plutus item but
 ignores notes in case you change them. Skipped items are not printed to the
 screen.
 
-There were 60 new items and these could be added to your profile pending your
-human review.
+There were 2 duplicated items because on 2 separate occasions a purchase was
+made on the same day for the same amount from the same store. It's rare but it
+can happen.
+
+There were 62 new items (including dupes) and these could be added to your
+profile pending your human review.
 
 ```
 WARNING: 2 new items are uncategorized as TODOUnknown
@@ -204,13 +220,32 @@ can scroll up in your terminal to find them or pipe the output of this script
 to grep such as `... | grep TODOUnknown` to quickly see them all. The warning
 is meant to let you know they exist at a glance.
 
+```
+WARNING: 2 new items had 1 or more duplicate lines in your input file
+  They are printed above and saved to both the duplicated and new files. You
+  can check the duplicated file to quickly see which lines were duplicated.
+
+  This is likely ok and happens when your raw imported line was found more than
+  once such as when you make 2 purchases on the same day for the same amount
+  from the same merchant. It might be rare but it can happen.
+
+  This is being presented as a warning so you can confirm it's legit and not
+  a copy / paste or export issue where they ended up accidentally duplicated.
+```
+
+This warning helps you identify if any duplicate items are expected. You can
+check each one out and remember what happened on that specific day to see if
+it makes sense.
+
+
 ```sh
 PLUTUS_PROFILE="/tmp/plutus-import-general-csv-ChaseChecking-ignored.csv" plutus show --summary-with-items --sort category
 PLUTUS_PROFILE="/tmp/plutus-import-general-csv-ChaseChecking-skipped.csv" plutus show --summary-with-items --sort category
+PLUTUS_PROFILE="/tmp/plutus-import-general-csv-ChaseFreedom-duplicated.csv" plutus show --summary-with-items --sort category
 PLUTUS_PROFILE="/tmp/plutus-import-general-csv-ChaseChecking-new.csv" plutus show --summary-with-items --sort category
 ```
 
-In all 3 cases, individual files were created for you to investigate for
+In all 4 cases, individual files were created for you to investigate for
 correctness. They are valid Plutus files so you can explore them quickly.
 
 When you're happy with everything you can copy the new items into your real

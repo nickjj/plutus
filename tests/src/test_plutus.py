@@ -168,7 +168,7 @@ class TestCLI(unittest.TestCase):
 
         self.assertEqual(11, len(items))
         self.assertEqual(items[0], PLUTUS.CSV_HEADERS)
-        self.assertEqual(items[1].count(","), 4)
+        self.assertEqual(items[1].count(","), 5)
 
         if os.path.exists(benchmark_profile_path):
             os.remove(benchmark_profile_path)
@@ -218,135 +218,162 @@ class TestCLI(unittest.TestCase):
 
     def test_lint_invalid_item_count_too_many(self):
         stdout, _stderr, rc = replace_csv_line(
-            1, '2025-02-12,"A",0.01,"B","C","D"'
+            1, '2025-02-12,"A",0.01,"B","C","D","E"'
         )
+
         self.assertIn("PARSE_FAILURE", stdout)
         self.assertIn("L2", stdout)
-        self.assertIn("5 comma(s)", stdout)
+        self.assertIn("6 comma(s)", stdout)
+        self.assertIn("5  Notes", stdout)
         self.assertEqual(1, rc)
 
-    def test_lint_invalid_whitespace_empty(self):
-        stdout, _stderr, rc = replace_csv_line(3, '2024-01-12,"A",0.01,"",')
+    def test_lint_invalid_whitespace_space(self):
+        stdout, _stderr, rc = replace_csv_line(3, '2024-01-12,"A",0.01," ",,')
+
         self.assertIn("WHITESPACE_MISMATCH", stdout)
         self.assertIn("L4", stdout)
         self.assertEqual(1, rc)
 
+    def test_lint_invalid_whitespace_ignored_for_description_and_notes(self):
+        stdout, _stderr, _rc = replace_csv_line(
+            3, '2024-01-12,"A",0.01,"B"," "," "'
+        )
+
+        self.assertNotIn("[WHITESPACE_MISMATCH]", stdout)
+
     def test_lint_invalid_date(self):
-        stdout, _stderr, rc = replace_csv_line(3, 'a2024-01-12,"A",0.01,"B",')
+        stdout, _stderr, rc = replace_csv_line(3, 'a2024-01-12,"A",0.01,"B",,')
         self.assertIn("DATE_MISMATCH", stdout)
         self.assertEqual(1, rc)
 
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-99-12,"A",0.01,"B",')
+        stdout, _stderr, _rc = replace_csv_line(1, '2024-99-12,"A",0.01,"B",,')
         self.assertIn("DATE_MISMATCH", stdout)
 
     def test_lint_invalid_category(self):
-        stdout, _stderr, rc = replace_csv_line(1, '2024-01-12,":A",0.01,"B",')
+        stdout, _stderr, rc = replace_csv_line(1, '2024-01-12,":A",0.01,"B",,')
         self.assertIn("CATEGORY_MISMATCH", stdout)
         self.assertEqual(1, rc)
 
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A:",0.01,"B",')
-        self.assertIn("CATEGORY_MISMATCH", stdout)
-
         stdout, _stderr, _rc = replace_csv_line(
-            1, '2024-01-12,"A::B",0.01,"B",'
+            1, '2024-01-12,"A:",0.01,"B",,'
         )
         self.assertIn("CATEGORY_MISMATCH", stdout)
 
         stdout, _stderr, _rc = replace_csv_line(
-            1, '2024-01-12,"A,B",0.01,"B",'
+            1, '2024-01-12,"A::B",0.01,"B",,'
         )
-        self.assertIn("CATEGORY_MISMATCH", stdout)
-
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,A,0.01,"B",')
         self.assertIn("CATEGORY_MISMATCH", stdout)
 
         stdout, _stderr, _rc = replace_csv_line(
-            1, '2024-01-12,"\'A",0.01,"B",'
+            1, '2024-01-12,"A,B",0.01,"B",,'
         )
         self.assertIn("CATEGORY_MISMATCH", stdout)
 
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,""A",0.01,"B",')
+        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,A,0.01,"B",,')
         self.assertIn("CATEGORY_MISMATCH", stdout)
+
+        stdout, _stderr, _rc = replace_csv_line(
+            1, '2024-01-12,"\'A",0.01,"B",,'
+        )
+        self.assertIn("CATEGORY_MISMATCH", stdout)
+
+        stdout, _stderr, _rc = replace_csv_line(
+            1, '2024-01-12,""A",0.01,"B",,'
+        )
+        self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
 
     def test_lint_invalid_amount(self):
-        stdout, stderr, rc = replace_csv_line(1, '2024-01-12,"A",+1.00,"B",')
+        stdout, stderr, rc = replace_csv_line(1, '2024-01-12,"A",+1.00,"B",,')
         self.assertIn("AMOUNT_MISMATCH", stdout)
         self.assertEqual(1, rc)
 
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",100,"B",')
+        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",100,"B",,')
         self.assertIn("AMOUNT_MISMATCH", stdout)
 
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",--1,"B",')
+        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",--1,"B",,')
         self.assertIn("PARSE_FAILURE", stdout)
 
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",ZZZ,"B",')
+        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",ZZZ,"B",,')
         self.assertIn("PARSE_FAILURE", stdout)
 
     def test_lint_warning_amount(self):
         stdout, stderr, rc = replace_csv_line(
-            1, '2024-01-12,"Income",-1.00,"B",'
+            1, '2024-01-12,"Income",-1.00,"B",,'
         )
         self.assertIn("INCOME_IS_NEGATIVE", stdout)
 
         stdout, stderr, rc = replace_csv_line(
-            1, '2024-01-12,"Tax:Refunds",-1.00,"B",'
+            1, '2024-01-12,"Tax:Refunds",-1.00,"B",,'
         )
         self.assertIn("INCOME_IS_NEGATIVE", stdout)
 
         stdout, stderr, rc = replace_csv_line(
-            1, '2024-01-12,"Business Expense",1.00,"B",'
+            1, '2024-01-12,"Business Expense",1.00,"B",,'
         )
         self.assertIn("EXPENSE_IS_POSITIVE", stdout)
 
     def test_lint_warning_amount_ignored(self):
         stdout, stderr, rc = replace_csv_line(
-            1, '2024-01-12,"Income",-1.00,"B",', "--no-warnings"
+            1, '2024-01-12,"Income",-1.00,"B",,', "--no-warnings"
         )
         self.assertNotIn("INCOME_IS_NEGATIVE", stdout)
 
         stdout, stderr, rc = replace_csv_line(
-            1, '2024-01-12,"Tax:Refunds",-1.00,"B",', "--no-warnings"
+            1, '2024-01-12,"Tax:Refunds",-1.00,"B",,', "--no-warnings"
         )
 
         self.assertNotIn("INCOME_IS_NEGATIVE", stdout)
 
         stdout, stderr, rc = replace_csv_line(
-            1, '2024-01-12,"Business Expense",1.00,"B",', "--no-warnings"
+            1, '2024-01-12,"Business Expense",1.00,"B",,', "--no-warnings"
         )
         self.assertNotIn("EXPENSE_IS_POSITIVE", stdout)
 
     def test_lint_invalid_method(self):
-        stdout, stderr, rc = replace_csv_line(1, '2024-01-12,"A",1.00,"B\'",')
+        stdout, stderr, rc = replace_csv_line(1, '2024-01-12,"A",1.00,"B\'",,')
         self.assertIn("METHOD_MISMATCH", stdout)
         self.assertEqual(1, rc)
 
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",1.00,"B:",')
+        stdout, _stderr, _rc = replace_csv_line(
+            1, '2024-01-12,"A",1.00,"B:",,'
+        )
         self.assertIn("METHOD_MISMATCH", stdout)
 
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",1.00,B,')
+        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",1.00,B,,')
         self.assertIn("METHOD_MISMATCH", stdout)
 
-        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",1.00,"B"",')
+        stdout, _stderr, _rc = replace_csv_line(
+            1, '2024-01-12,"A",1.00,"B"",,'
+        )
+        self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
+
+    def test_lint_invalid_description(self):
+        stdout, _stderr, rc = replace_csv_line(1, '2024-01-12,"A",1.00,",')
+        self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
+        self.assertEqual(1, rc)
+
+        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",1.00,C')
+        self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
+
+        stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",1.00,",')
         self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
 
     def test_lint_invalid_notes(self):
-        stdout, _stderr, rc = replace_csv_line(
-            1, '2024-01-12,"A",1.00,"B","C:"'
-        )
-        self.assertIn("NOTES_MISMATCH", stdout)
+        stdout, _stderr, rc = replace_csv_line(1, '2024-01-12,"A",1.00,"B","')
+        self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
         self.assertEqual(1, rc)
 
         stdout, _stderr, _rc = replace_csv_line(1, '2024-01-12,"A",1.00,"B",C')
-        self.assertIn("NOTES_MISMATCH", stdout)
+        self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
 
         stdout, _stderr, _rc = replace_csv_line(
-            1, '2024-01-12,"A",1.00,"B","C""'
+            1, '2024-01-12,"A",1.00,"B",\'"'
         )
         self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
 
     def test_lint_invalid_sort(self):
-        first_line = '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"'  # noqa: E501
-        last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
+        first_line = '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","MOBIL 7581245411",'  # noqa: E501
+        last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"Checking","AMAZON.COM, INC. PAYMENTS",'  # noqa: E501
 
         with open(TEST_PROFILE) as file:
             lines = file.readlines()
@@ -372,7 +399,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(1, rc)
 
     def test_lint_invalid_uniqueness(self):
-        duplicate_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
+        duplicate_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"Checking","AMAZON.COM, INC. PAYMENTS",'  # noqa: E501
 
         with open(TEST_PROFILE, "a") as file:
             file.write(f"{duplicate_line}\n")
@@ -383,7 +410,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("@@ -30,4 +30,3 @@", stdout)
         self.assertEqual(1, rc)
 
-        _, _, rc_no_uniue_errors = call_script("lint", "--no-unique-errors")
+        _, _, rc_no_unique_errors = call_script("lint", "--no-unique-errors")
 
         with open(TEST_PROFILE) as file:
             lines = file.readlines()
@@ -394,7 +421,7 @@ class TestCLI(unittest.TestCase):
         with open(TEST_PROFILE, "w") as file:
             file.writelines(lines)
 
-        self.assertEqual(0, rc_no_uniue_errors)
+        self.assertEqual(0, rc_no_unique_errors)
 
     def test_info_help(self):
         stdout, _stderr, _rc = call_script("info", "--help")
@@ -422,14 +449,16 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("SCRIPT_NAME", stdout)
 
     def test_info_items(self):
+        PLUTUS = load_plutus_module()
+
         stdout, _stderr, _rc = call_script("info", "--items")
 
         lines = stdout.splitlines()
 
-        first_line = '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"'  # noqa: E501
-        last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
+        first_line = '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","MOBIL 7581245411",'  # noqa: E501
+        last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"Checking","AMAZON.COM, INC. PAYMENTS",'  # noqa: E501
 
-        expected_headers = "Date,Category,Amount,Method,Notes"
+        expected_headers = PLUTUS.CSV_HEADERS
         actual_headers = ""
 
         expected_items = [first_line, last_line]
@@ -492,8 +521,8 @@ class TestCLI(unittest.TestCase):
         self.assertIn("2025-12-30", lines[-1])
         self.assertIn("Income:Affiliates:Amazon", lines[-1])
         self.assertIn("$234.56 ", lines[-1])
-        self.assertIn("ACH", lines[-1])
-        self.assertIn("-$440.23", lines[-1])
+        self.assertIn("Checking", lines[-1])
+        self.assertIn("-$454.21", lines[-1])
 
     def test_show_invalid_locale(self):
         os.environ["LC_ALL"] = "invalid"
@@ -534,18 +563,22 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(0, rc)
 
     def test_show_raw(self):
+        PLUTUS = load_plutus_module()
+
         stdout, _stderr, _rc = call_script("show", "--raw")
-        self.assertIn("Date,Category,Amount,Method,Notes", stdout)
+        self.assertIn(PLUTUS.CSV_HEADERS, stdout)
         self.assertIn(
-            '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"',  # noqa: E501
+            '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","MOBIL 7581245411",',  # noqa: E501
             stdout,
         )
 
     def test_show_raw_filtered(self):
+        PLUTUS = load_plutus_module()
+
         stdout, _stderr, _rc = call_script("show", "2025", "--raw")
-        self.assertIn("Date,Category,Amount,Method,Notes", stdout)
+        self.assertIn(PLUTUS.CSV_HEADERS, stdout)
         self.assertNotIn(
-            '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"',  # noqa: E501
+            '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","MOBIL 7581245411",',  # noqa: E501
             stdout,
         )
 
@@ -564,14 +597,14 @@ class TestCLI(unittest.TestCase):
 
         self.assertIn("2025-12-30", lines[3])
         self.assertIn("2024-01-12", lines[-1])
-        self.assertIn("Gas", lines[-1])
+        self.assertIn("MOBIL 7581245411", lines[-1])
 
     def test_show_sort_by_category(self):
         stdout, _stderr, _rc = call_script("show", "--sort", "category")
 
         lines = stdout.splitlines()
 
-        self.assertIn("Business Expenses:Affiliates", lines[3])
+        self.assertIn("Business Expenses:Dining Out", lines[3])
         self.assertIn("Tax:Refunds", lines[-1])
 
     def test_show_sort_by_category_rev(self):
@@ -580,7 +613,7 @@ class TestCLI(unittest.TestCase):
         lines = stdout.splitlines()
 
         self.assertIn("Tax:Refunds", lines[3])
-        self.assertIn("Business Expenses:Affiliates", lines[-1])
+        self.assertIn("Business Expenses:Dining Out", lines[-1])
 
     def test_show_sort_by_amount(self):
         stdout, _stderr, _rc = call_script("show", "--sort", "amount")
@@ -588,7 +621,7 @@ class TestCLI(unittest.TestCase):
         lines = stdout.splitlines()
 
         self.assertIn("-$3,200.00", lines[3])
-        self.assertIn("-$440.23", lines[-1])
+        self.assertIn("-$454.21", lines[-1])
 
     def test_show_sort_by_amount_rev(self):
         stdout, _stderr, _rc = call_script("show", "--sort", "amount-")
@@ -596,14 +629,14 @@ class TestCLI(unittest.TestCase):
         lines = stdout.splitlines()
 
         self.assertIn("-$3,200.00", lines[-1])
-        self.assertIn("-$440.23", lines[-1])
+        self.assertIn("-$454.21", lines[-1])
 
     def test_show_sort_by_method(self):
         stdout, _stderr, _rc = call_script("show", "--sort", "method")
 
         lines = stdout.splitlines()
 
-        self.assertIn("ACH", lines[3])
+        self.assertIn("Cash", lines[3])
         self.assertIn("Zelle", lines[-1])
 
     def test_show_sort_by_method_rev(self):
@@ -612,14 +645,30 @@ class TestCLI(unittest.TestCase):
         lines = stdout.splitlines()
 
         self.assertIn("Zelle", lines[3])
-        self.assertIn("ACH", lines[-1])
+        self.assertIn("Cash", lines[-1])
+
+    def test_show_sort_by_description(self):
+        stdout, _stderr, _rc = call_script("show", "--sort", "description")
+
+        lines = stdout.splitlines()
+
+        self.assertIn("2024-07-17", lines[3])
+        self.assertIn("to WILLIAM THATCHER", lines[-1])
+
+    def test_show_sort_by_description_rev(self):
+        stdout, _stderr, _rc = call_script("show", "--sort", "description-")
+
+        lines = stdout.splitlines()
+
+        self.assertIn("to WILLIAM THATCHER", lines[3])
+        self.assertIn("2024-07-17", lines[-1])
 
     def test_show_sort_by_notes(self):
         stdout, _stderr, _rc = call_script("show", "--sort", "notes")
 
         lines = stdout.splitlines()
 
-        self.assertIn("2024-04-30", lines[3])
+        self.assertIn("2024-01-12", lines[3])
         self.assertIn("nickjanetakis.com", lines[-1])
 
     def test_show_sort_by_notes_rev(self):
@@ -628,7 +677,7 @@ class TestCLI(unittest.TestCase):
         lines = stdout.splitlines()
 
         self.assertIn("nickjanetakis.com", lines[3])
-        self.assertIn("2024-04-30", lines[-1])
+        self.assertIn("2024-01-12", lines[-1])
 
     def test_show_summary(self):
         stdout, _stderr, _rc = call_script("show", "--summary")
@@ -639,7 +688,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("| Category", lines[1])
         self.assertIn("Tax:Refunds", lines[-1])
         self.assertIn("$1,850.00", lines[-1])
-        self.assertIn("$440.23", lines[-1])
+        self.assertIn("$454.21", lines[-1])
         self.assertIn("2", lines[-1])
         self.assertIn("32", lines[-1])
 
@@ -652,7 +701,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("| Date", lines[1])
         self.assertIn("2025-12-30", lines[-1])
         self.assertIn("$234.56", lines[-1])
-        self.assertIn("$440.23", lines[-1])
+        self.assertIn("$454.21", lines[-1])
         self.assertIn("| 1", lines[-1])
         self.assertIn("| 32", lines[-1])
 
@@ -665,7 +714,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("| Amount", lines[1])
         self.assertIn("1614.0", lines[-1])
         self.assertIn("$1,614.00", lines[-1])
-        self.assertIn("-$440.23", lines[-1])
+        self.assertIn("-$454.21", lines[-1])
         self.assertIn("| 1", lines[-1])
         self.assertIn("| 32", lines[-1])
 
@@ -674,12 +723,25 @@ class TestCLI(unittest.TestCase):
 
         lines = stdout.splitlines()
 
-        self.assertEqual(len(lines), 10)
+        self.assertEqual(len(lines), 9)
         self.assertIn("| Method", lines[1])
         self.assertIn("Zelle", lines[-1])
         self.assertIn("$1,217.68", lines[-1])
-        self.assertIn("$440.23", lines[-1])
+        self.assertIn("$454.21", lines[-1])
         self.assertIn("| 5", lines[-1])
+        self.assertIn("| 32", lines[-1])
+
+    def test_show_summary_description(self):
+        stdout, _stderr, _rc = call_script("show", "--summary", "description")
+
+        lines = stdout.splitlines()
+
+        self.assertEqual(len(lines), 26)
+        self.assertIn("| Description", lines[1])
+        self.assertIn("to WILLIAM THATCHER", lines[-1])
+        self.assertIn("-$42.60", lines[-1])
+        self.assertIn("-$454.21", lines[-1])
+        self.assertIn("| 2", lines[-1])
         self.assertIn("| 32", lines[-1])
 
     def test_show_summary_notes(self):
@@ -691,7 +753,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("| Notes", lines[1])
         self.assertIn("nickjanetakis.com", lines[-1])
         self.assertIn("-$10.95", lines[-1])
-        self.assertIn("$440.23", lines[-1])
+        self.assertIn("$454.21", lines[-1])
         self.assertIn("| 1", lines[-1])
         self.assertIn("| 32", lines[-1])
 
@@ -700,7 +762,7 @@ class TestCLI(unittest.TestCase):
 
         lines = stdout.splitlines()
 
-        self.assertIn("Business Expenses:Affiliates", lines[3])
+        self.assertIn("Business Expenses:Dining Out", lines[3])
         self.assertIn("Tax:Refunds", lines[-1])
 
     def test_show_summary_sort_by_category_rev(self):
@@ -709,7 +771,7 @@ class TestCLI(unittest.TestCase):
         lines = stdout.splitlines()
 
         self.assertIn("Tax:Refunds", lines[3])
-        self.assertIn("Business Expenses:Affiliates", lines[-1])
+        self.assertIn("Business Expenses:Dining Out", lines[-1])
 
     def test_show_summary_sort_by_amount(self):
         stdout, _stderr, _rc = call_script("show", "-m", "--sort", "amount")
@@ -754,7 +816,7 @@ class TestCLI(unittest.TestCase):
 
         self.assertEqual(len(lines), 56)
         self.assertIn("| Category", lines[1])
-        self.assertIn("$42.60", lines[3])
+        self.assertIn("$70.00", lines[3])
         self.assertIn("| Date", lines[22])
         self.assertIn("$20.01", lines[24])
 
@@ -766,8 +828,8 @@ class TestCLI(unittest.TestCase):
         lines = stdout.splitlines()
 
         self.assertEqual(len(lines), 35)
-        self.assertNotIn("-$440.23", lines[-1])
-        self.assertIn("-440.23", lines[-1])
+        self.assertNotIn("-$454.21", lines[-1])
+        self.assertIn("-454.21", lines[-1])
 
     def test_show_format_negatives_with_parentheses(self):
         stdout, _stderr, _rc = replace_config_line(
@@ -793,8 +855,10 @@ class TestCLI(unittest.TestCase):
         self.assertIn("favorite code editor", stdout)
 
     def test_edit(self):
+        PLUTUS = load_plutus_module()
+
         stdout, _stderr, _rc = call_script("edit")
-        self.assertIn("Date,Category,Amount,Method,Notes", stdout)
+        self.assertIn(PLUTUS.CSV_HEADERS, stdout)
 
     def test_edit_undefined_editor(self):
         del os.environ["EDITOR"]
@@ -809,8 +873,10 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(stdout, "")
 
     def test_edit_sort_with_changes(self):
-        first_line = '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","Gas"'  # noqa: E501
-        last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"ACH",'
+        PLUTUS = load_plutus_module()
+
+        first_line = '2024-01-12,"Personal Expenses:Travel",-20.01,"FreedomCard","MOBIL 7581245411",'  # noqa: E501
+        last_line = '2025-12-30,"Income:Affiliates:Amazon",234.56,"Checking","AMAZON.COM, INC. PAYMENTS",'  # noqa: E501
 
         with open(TEST_PROFILE) as file:
             lines = file.readlines()
@@ -827,7 +893,7 @@ class TestCLI(unittest.TestCase):
         with open(TEST_PROFILE) as file:
             lines = file.readlines()
 
-        expected_headers = "Date,Category,Amount,Method,Notes"
+        expected_headers = PLUTUS.CSV_HEADERS
         expected_items = [f"{first_line}", f"{last_line}"]
 
         self.assertIn("@@ -1,4 +1,4 @@", stdout)
@@ -904,8 +970,8 @@ class TestCLI(unittest.TestCase):
         self.assertIn("| Income:Consulting", lines[3])
         self.assertIn("| $3,000.00", lines[3])
         self.assertIn("| 4", lines[3])
-        self.assertIn("| William Thatcher", lines[-1])
-        self.assertIn("| -$17.70", lines[-1])
+        self.assertIn("| Dinner with King Midas", lines[-1])
+        self.assertIn("| -$70.00", lines[-1])
 
     def test_alias_ibe_with_both_args(self):
         stdout, _stderr, _rc = call_script("alias", "ibe", "2025-q4", "Zelle")
