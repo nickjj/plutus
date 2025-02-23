@@ -651,8 +651,8 @@ thought process:
   - Optional metadata to store anything you want such as comments or tags to filter on
 
 If the structure changes over time that's ok, it's just text. Since I use the
-tool all the time I will provide a battle hardened script to do 1-off
-migrations.
+tool all the time I've written scripts to do 1-off migrations in a safe way.
+They are located in the [upgrades/](./upgrades/) directory.
 
 #### Dynamic headers
 

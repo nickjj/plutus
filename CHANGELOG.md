@@ -7,6 +7,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+🧬 *This release has breaking changes and includes an [upgrade script](./upgrades).*
+
 ### Added
 
 - Description field to store bank details or anything of interest from a CSV source

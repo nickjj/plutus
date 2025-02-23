@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Usage: 0.x-to-0.7 ~/business/plutus.csv
+#                   ^ Replace this with your profile path
+#
+# This script will NOT touch your real profile. It will do its modifications
+# in a temp file and show you a git diff of what's changed. If you're happy
+# with the changes you can fully replace your old profile with the new one.
+#
+# The expectations are:
+#   - [Headers] Description gets added before Notes
+#   - [Headers] Notes get moved to the last position
+#   - [Items] All of your old notes get shifted over 1 column to the right
+#
+# This results in the new description field being empty with no data loss. If
+# your bank export or other CSV file has useful details then the new description
+# field will get populated with that. This allows you to add optional notes
+# to any item without touching the original source description which makes
+# it easier to verify imports later.
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+export GIT_PAGER=0
+
+tmp_dir="/tmp/plutus-migrate"
+profile="${1}"
+
+old_profile_filename="$(basename "${profile}")"
+new_profile_filename="${old_profile_filename//.csv/-new.csv}"
+
+old_headers="Date,Category,Amount,Method,Notes"
+new_headers="Date,Category,Amount,Method,Description,Notes"
+
+rm -rf "${tmp_dir}"
+mkdir -p "${tmp_dir}"
+cd "${tmp_dir}"
+cp "${profile}" .
+
+perl -p -e "s/^${old_headers}$/${new_headers}/g" "${old_profile_filename}" > "${new_profile_filename}"
+perl -pi -e 's/(.*)",/$1",,/g' "${new_profile_filename}"
+
+git diff --no-index --color-words=. -- "${profile}" "${new_profile_filename}" 2> /dev/null || true
+
+printf "\nYour updated profile is at: %s\n" "${tmp_dir}/${new_profile_filename}"
