@@ -11,7 +11,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.7.0] - 2025-02-23
 
-🧬 *This release has breaking changes and includes an [upgrade script](./upgrades).*
+🧬 *This release has breaking changes, an [upgrade script](./upgrades) can safely migrate your profile.*
 
 ### Added
 
