@@ -20,7 +20,7 @@ All of the importers try to follow these philosophies:
 # Install it on a well known system path that will work on most systems, feel
 # free to adjust this path if you want.
 sudo curl \
-  -L https://raw.githubusercontent.com/nickjj/plutus/0.6.3/src/importers/import-general-csv \
+  -L https://raw.githubusercontent.com/nickjj/plutus/0.7.0/src/importers/import-general-csv \
   -o /usr/local/bin/import-general-csv && sudo chmod +x /usr/local/bin/import-general-csv
 ```
 
