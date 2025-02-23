@@ -664,7 +664,7 @@ result. These help you gain insight on your numbers.
 #### Items
 
 ```csv
-2025-10-17,"Income:Consulting",600.00,"Zelle","Johnny Tables (Flask)"
+2025-10-17,"Income:Consulting",600.00,"Zelle","Zelle payment from JONNY TABLES","Helped with Flask"
 ```
 
 Each field is separated by commas and all string fields except the date always
