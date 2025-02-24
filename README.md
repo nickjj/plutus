@@ -497,9 +497,10 @@ same.
 
 ### Level up with aliases
 
-Typing regular expressions is rarely fun but you might find yourself wanting
-to filter by certain dates and categories on a regular basis such as the case
-to answer *"show me my income and business expenses for 2025 Q4"*.
+Routinely typing long regular expressions is rarely fun but you might find
+yourself wanting to filter by certain dates and categories on a regular basis
+such as the case to answer *"show me my income and business expenses for 2025
+Q4"*.
 
 You can totally do that with `plutus show "2025-q4-.*(Income|Business
 Expenses):" --summary-with-items --sort category-`, the sort flag is a nice
