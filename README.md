@@ -432,7 +432,7 @@ options:
 
 ### Ready to add items?
 
-There's a couple of options depending on your preference.
+There's a couple of options depending on your preference:
 
 #### Using your code editor
 
@@ -458,6 +458,13 @@ quick and painless.
 I use this method when adding 1 item at a time. For multiple items I tend to
 use my code editor but it really depends on your preference. Both options
 exist.
+
+#### Importing from bank exports and more
+
+There is a section later in this readme file covering imports but you can use a
+general purpose CSV import script included with this project to import CSV
+files from most data sources. All of that is [documented
+here](./src/importers/).
 
 ### Filtering tips
 
