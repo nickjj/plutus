@@ -60,6 +60,10 @@ CONFIG_DEFAULTS = {
         "default_profile": "/path/to/your/config.ini",
         "format_amounts": True,
         "format_negatives_with_parentheses": False,
+        "tax_quarter_q1": "01|02|03",
+        "tax_quarter_q2": "04|05",
+        "tax_quarter_q3": "06|07|08",
+        "tax_quarter_q4": "09|10|11|12",
         "lint_income_words": "income,refund",
         "lint_expense_words": "expense",
     },
@@ -747,15 +751,15 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
         pattern_rest = "-".join(pattern_parts[1:])[2:]
 
         if pattern_q.startswith("q1"):
-            pattern_q = "(01|02|03)"
+            pattern_q = config["Settings"]["tax_quarter_q1"]
         elif pattern_q.startswith("q2"):
-            pattern_q = "(04|05)"
+            pattern_q = config["Settings"]["tax_quarter_q2"]
         elif pattern_q.startswith("q3"):
-            pattern_q = "(06|07|08)"
+            pattern_q = config["Settings"]["tax_quarter_q3"]
         elif pattern_q.startswith("q4"):
-            pattern_q = "(09|10|11|12)"
+            pattern_q = config["Settings"]["tax_quarter_q4"]
 
-        pattern = f"{pattern_year}-{pattern_q}{pattern_rest}"
+        pattern = f"{pattern_year}-({pattern_q}){pattern_rest}"
 
     # If you're searching for 4 digits or quarters, it's probably a year so
     # lets clamp it to the start of the line to avoid picking up false

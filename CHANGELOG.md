@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Added
+
+- Config settings to customize the tax quarter months
 
 ## [0.7.0] - 2025-02-23
 

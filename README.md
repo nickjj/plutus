@@ -603,6 +603,14 @@ format_amounts = True
 # If True, negative amounts will be shown as ($777.77).
 format_negatives_with_parentheses = False
 
+# Define which months are considered tax quarters, it defaults to the US. It is
+# imporant each month is separated by | since this is ultimately a regex OR,
+# you don't need to include the outer () because it gets added automatically.
+tax_quarter_q1 = 01|02|03
+tax_quarter_q2 = 04|05
+tax_quarter_q3 = 06|07|08
+tax_quarter_q4 = 09|10|11|12
+
 # Comma separated list of words to search for when linting amounts to make
 # sure income is not accidentally a negative number.
 #
