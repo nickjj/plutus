@@ -1468,7 +1468,7 @@ def info_items(no_dynamic_years=False):
         f'{year}-05-04,"Tax:Refunds",236.00,"Checking","NYS DTP PIT    Tax Paymnt 00034587","for {last_year}"',  # noqa: E501
         f'{year}-05-19,"Personal Expenses:Entertainment",-16.83,"FreedomCard","NETFLIX.COM",',  # noqa: E501
         f'{year}-06-05,"Income:Merch",360.28,"Checking","Zelle payment from STICKERS INC.","Programming stickers"',  # noqa: E501
-        f'{year}-07-06,"Income:Consulting",300.00,"Checking","Zelle payment from JONNY TABLES","Helped with Flask"',  # noqa: E501
+        f'{year}-07-06,"Income:Consulting",300.00,"Checking","Zelle payment from BOBBY TABLES","Helped with Flask"',  # noqa: E501
         f'{year}-07-14,"Personal Expenses:Entertainment:Games",-10.17,"FreedomCard","WL *Steam Purchase","Ori and the Blind Forest"',  # noqa: E501
         f'{year}-07-16,"Income:Consulting",600.00,"Checking","ACME INC. PPD ID: 5551234567890","Helped with Docker"',  # noqa: E501
         f'{year}-08-01,"Business Expenses:Hosting:DigitalOcean",-12.00,"FreedomCard","DIGITALOCEAN.COM",',  # noqa: E501
@@ -1478,7 +1478,7 @@ def info_items(no_dynamic_years=False):
         f'{year}-09-01,"Business Expenses:Services",-24.90,"Checking","Zelle payment to WILLIAM THATCHER","Jousting lessons"',  # noqa: E501
         f'{year}-09-03,"Business Expenses:Hosting:Domain Names",-10.95,"PayPal","2A325584B6472273W","nickjanetakis.com, NameSilo"',  # noqa: E501
         f'{year}-10-11,"Income:Consulting",1500.00,"PayPal","55517238SB795472B","alice@example.com, helped with Flask"',  # noqa: E501
-        f'{year}-10-17,"Income:Consulting",600.00,"Checking","Zelle payment from JONNY TABLES","Helped with Flask"',  # noqa: E501
+        f'{year}-10-17,"Income:Consulting",600.00,"Checking","Zelle payment from BOBBY TABLES","Helped with Flask"',  # noqa: E501
         f'{year}-10-30,"Income:Affiliates:Amazon",123.45,"Checking","AMAZON.COM, INC. PAYMENTS",',  # noqa: E501
         f'{year}-11-30,"Income:Affiliates:Amazon",345.67,"Checking","AMAZON.COM, INC. PAYMENTS",',  # noqa: E501
         f'{year}-11-30,"Income:Affiliates:DigitalOcean",25.00,"PayPal","0Y420200EZ1797431","do@dexample.com"',  # noqa: E501

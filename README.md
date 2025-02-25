@@ -117,7 +117,7 @@ plutus show 2025
 6  | 2025-05-04 | Tax:Refunds                            | $236.00    | $502.59    | Checking    | NYS DTP PIT    Tax Paymnt 00034587  | for 2024
 7  | 2025-05-19 | Personal Expenses:Entertainment        | -$16.83    | $485.76    | FreedomCard | NETFLIX.COM                         |
 8  | 2025-06-05 | Income:Merch                           | $360.28    | $846.04    | Zelle       | Zelle payment from STICKERS INC.    | Programming stickers
-9  | 2025-07-06 | Income:Consulting                      | $300.00    | $1,146.04  | Zelle       | Zelle payment from JONNY TABLES     | Helped with Flask
+9  | 2025-07-06 | Income:Consulting                      | $300.00    | $1,146.04  | Zelle       | Zelle payment from BOBBY TABLES     | Helped with Flask
 10 | 2025-07-14 | Personal Expenses:Entertainment:Games  | -$10.17    | $1,135.87  | FreedomCard | WL *Steam Purchase                  | Ori and the Blind Forest
 11 | 2025-07-16 | Income:Consulting                      | $600.00    | $1,735.87  | Checking    | ACME INC. PPD ID: 5551234567890     | Helped with Docker
 12 | 2025-08-01 | Business Expenses:Hosting:DigitalOcean | -$12.00    | $1,723.87  | FreedomCard | DIGITALOCEAN.COM                    |
@@ -127,7 +127,7 @@ plutus show 2025
 16 | 2025-09-01 | Business Expenses:Services             | -$24.90    | -$1,530.73 | Zelle       | Zelle payment to WILLIAM THATCHER   | Jousting lessons
 17 | 2025-09-03 | Business Expenses:Hosting:Domain Names | -$10.95    | -$1,541.68 | PayPal      | 2A325584B6472273W                   | nickjanetakis.com, NameSilo
 18 | 2025-10-11 | Income:Consulting                      | $1,500.00  | -$41.68    | PayPal      | 55517238SB795472B                   | alice@example.com, helped with Flask
-19 | 2025-10-17 | Income:Consulting                      | $600.00    | $558.32    | Zelle       | Zelle payment from JONNY TABLES     | Helped with Flask
+19 | 2025-10-17 | Income:Consulting                      | $600.00    | $558.32    | Zelle       | Zelle payment from BOBBY TABLES     | Helped with Flask
 20 | 2025-10-30 | Income:Affiliates:Amazon               | $123.45    | $681.77    | Checking    | AMAZON.COM, INC. PAYMENTS           |
 21 | 2025-11-30 | Income:Affiliates:Amazon               | $345.67    | $1,027.44  | Checking    | AMAZON.COM, INC. PAYMENTS           |
 22 | 2025-11-30 | Income:Affiliates:DigitalOcean         | $25.00     | $1,052.44  | PayPal      | 0Y420200EZ1797431                   | do@dexample.com
@@ -152,7 +152,7 @@ plutus show 2025-q4 --sort amount
 6  | 2025-10-30 | Income:Affiliates:Amazon               | $123.45   | $150.60   | Checking    | AMAZON.COM, INC. PAYMENTS         |
 7  | 2025-12-30 | Income:Affiliates:Amazon               | $234.56   | $385.16   | Checking    | AMAZON.COM, INC. PAYMENTS         |
 8  | 2025-11-30 | Income:Affiliates:Amazon               | $345.67   | $730.83   | Checking    | AMAZON.COM, INC. PAYMENTS         |
-9  | 2025-10-17 | Income:Consulting                      | $600.00   | $1,330.83 | Zelle       | Zelle payment from JONNY TABLES   | Helped with Flask
+9  | 2025-10-17 | Income:Consulting                      | $600.00   | $1,330.83 | Zelle       | Zelle payment from BOBBY TABLES   | Helped with Flask
 10 | 2025-10-11 | Income:Consulting                      | $1,500.00 | $2,830.83 | PayPal      | 55517238SB795472B                 | alice@example.com, helped with Flask
 ```
 
@@ -680,7 +680,7 @@ result. These help you gain insight on your numbers.
 #### Items
 
 ```csv
-2025-10-17,"Income:Consulting",600.00,"Zelle","Zelle payment from JONNY TABLES","Helped with Flask"
+2025-10-17,"Income:Consulting",600.00,"Zelle","Zelle payment from BOBBY TABLES","Helped with Flask"
 ```
 
 Each field is separated by commas and all string fields except the date always
