@@ -1464,8 +1464,8 @@ def info_items(no_dynamic_years=False):
         f'{year}-02-28,"Personal Expenses:Travel",-1244.03,"FreedomCard","ICEAIR     000AX7DU80","Flying to Antartica"',  # noqa: E501
         f'{year}-03-17,"Personal Expenses:Groceries",-14.14,"FreedomCard","FARMER\'S MARKET",',  # noqa: E501
         f'{year}-04-30,"Personal Expenses:Groceries",-84.21,"FreedomCard","FARMER\'S MARKET",',  # noqa: E501
-        f'{year}-05-02,"Tax:Refunds",1614.00,"Checking","IRS     USATAXPYMNT WID: 5557652752","for {last_year}"',  # noqa: E501
-        f'{year}-05-04,"Tax:Refunds",236.00,"Checking","NYS DTP PIT    Tax Paymnt 00034587","for {last_year}"',  # noqa: E501
+        f'{year}-05-02,"Tax:Refunds",1614.00,"Checking","US TREASURY IRS  AID: 5557652752","for {last_year}"',  # noqa: E501
+        f'{year}-05-04,"Tax:Refunds",236.00,"Checking","NYS DTP PIT PAYMENT AID: 00034587","for {last_year}"',  # noqa: E501
         f'{year}-05-19,"Personal Expenses:Entertainment",-16.83,"FreedomCard","NETFLIX.COM",',  # noqa: E501
         f'{year}-06-05,"Income:Merch",360.28,"Checking","Zelle payment from STICKERS INC.","Programming stickers"',  # noqa: E501
         f'{year}-07-06,"Income:Consulting",300.00,"Checking","Zelle payment from BOBBY TABLES","Helped with Flask"',  # noqa: E501

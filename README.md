@@ -113,8 +113,8 @@ plutus show 2025
 2  | 2025-02-28 | Personal Expenses:Travel               | -$1,244.03 | -$1,249.06 | FreedomCard | ICEAIR     000AX7DU80               | Flying to Antartica
 3  | 2025-03-17 | Personal Expenses:Groceries            | -$14.14    | -$1,263.20 | FreedomCard | FARMER'S MARKET                     |
 4  | 2025-04-30 | Personal Expenses:Groceries            | -$84.21    | -$1,347.41 | FreedomCard | FARMER'S MARKET                     |
-5  | 2025-05-02 | Tax:Refunds                            | $1,614.00  | $266.59    | Checking    | IRS     USATAXPYMNT WID: 5557652752 | for 2024
-6  | 2025-05-04 | Tax:Refunds                            | $236.00    | $502.59    | Checking    | NYS DTP PIT    Tax Paymnt 00034587  | for 2024
+5  | 2025-05-02 | Tax:Refunds                            | $1,614.00  | $266.59    | Checking    | US TREASURY IRS  AID: 5557652752    | for 2024
+6  | 2025-05-04 | Tax:Refunds                            | $236.00    | $502.59    | Checking    | NYS DTP PIT PAYMENT AID: 00034587   | for 2024
 7  | 2025-05-19 | Personal Expenses:Entertainment        | -$16.83    | $485.76    | FreedomCard | NETFLIX.COM                         |
 8  | 2025-06-05 | Income:Merch                           | $360.28    | $846.04    | Zelle       | Zelle payment from STICKERS INC.    | Programming stickers
 9  | 2025-07-06 | Income:Consulting                      | $300.00    | $1,146.04  | Zelle       | Zelle payment from BOBBY TABLES     | Helped with Flask
