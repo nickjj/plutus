@@ -637,14 +637,14 @@ class TestCLI(unittest.TestCase):
         lines = stdout.splitlines()
 
         self.assertIn("Cash", lines[3])
-        self.assertIn("Zelle", lines[-1])
+        self.assertIn("SapphireCard", lines[-1])
 
     def test_show_sort_by_method_rev(self):
         stdout, _stderr, _rc = call_script("show", "--sort", "method-")
 
         lines = stdout.splitlines()
 
-        self.assertIn("Zelle", lines[3])
+        self.assertIn("SapphireCard", lines[3])
         self.assertIn("Cash", lines[-1])
 
     def test_show_sort_by_description(self):
@@ -723,12 +723,12 @@ class TestCLI(unittest.TestCase):
 
         lines = stdout.splitlines()
 
-        self.assertEqual(len(lines), 9)
+        self.assertEqual(len(lines), 8)
         self.assertIn("| Method", lines[1])
-        self.assertIn("Zelle", lines[-1])
-        self.assertIn("$1,217.68", lines[-1])
-        self.assertIn("$454.21", lines[-1])
-        self.assertIn("| 5", lines[-1])
+        self.assertIn("SapphireCard", lines[-1])
+        self.assertIn("-$80.00", lines[-1])
+        self.assertIn("-$454.21", lines[-1])
+        self.assertIn("| 2", lines[-1])
         self.assertIn("| 32", lines[-1])
 
     def test_show_summary_description(self):
