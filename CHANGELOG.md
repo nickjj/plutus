@@ -7,6 +7,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- Nothing yet
+
+## [0.7.1] - 2025-02-25
+
 ### Added
 
 - Config settings to customize the tax quarter months
@@ -200,7 +204,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Everything!
 
-[Unreleased]: https://github.com/nickjj/plutus/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/nickjj/plutus/compare/0.7.1...HEAD
+[0.7.1]: https://github.com/nickjj/plutus/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/nickjj/plutus/compare/0.6.3...0.7.0
 [0.6.3]: https://github.com/nickjj/plutus/compare/0.6.2...0.6.3
 [0.6.2]: https://github.com/nickjj/plutus/compare/0.6.1...0.6.2
