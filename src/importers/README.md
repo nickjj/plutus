@@ -168,7 +168,7 @@ There were hundreds of items output but I only included the last one below:
 
 ```
 2024-01-02,"Business Expenses:Hosting:DigitalOcean",-12.00,"ChaseChecking","DIGITALOCEAN.COM DIGITALOCEAN. NY            01/01",
-DEBUG (#60 on L582 - -1337.00): DEBIT,01/02/2024,"DIGITALOCEAN.COM DIGITALOCEAN. NY            01/01",-12.00,DEBIT_CARD,3485.70,,
+DEBUG (#60 on L582 - -1337.00): DEBIT,01/02/2024,"DIGITALOCEAN.COM DIGITALOCEAN. NY            01/01",-12.00,DEBIT_CARD,555.55,,
 ```
 
 - Each item is output in the format Plutus expects
