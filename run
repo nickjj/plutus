@@ -36,7 +36,7 @@ function ci:install-deps {
 
 function ci:test {
   lint "${@}"
-  cmd ruff check --select I
+  ruff check --select I
   format --check
   test "${@}"
 }
