@@ -3,24 +3,24 @@
 set -o errexit
 set -o pipefail
 
-function lint {
+lint() {
   # Lint Python code
-  flake8 src/plutus src/importers/import-* tests/ "${@}"
+  ruff check "${@}"
 }
 
-function format:imports {
+format:imports() {
   # Sort Python imports
-  isort src/plutus src/importers/import-* tests/ "${@}"
+  lint --select I --fix "${@}"
 }
 
-function format {
+format() {
   # Format Python code
-  black src/plutus src/importers/import-* tests/ "${@}"
+  ruff format "${@}"
 }
 
-function quality {
+quality() {
   # Perform all code quality commands together
-  format:imports
+  format:imports "${@}"
   format
   lint
 }
@@ -31,12 +31,12 @@ function test {
 }
 
 function ci:install-deps {
-  pip3 install black flake8 isort
+  pip3 install ruff
 }
 
 function ci:test {
   lint "${@}"
-  format:imports --check
+  cmd ruff check --select I
   format --check
   test "${@}"
 }

@@ -17,8 +17,7 @@ from datetime import datetime
 from decimal import Decimal
 from io import StringIO
 from itertools import tee
-from subprocess import PIPE
-from subprocess import Popen
+from subprocess import PIPE, Popen
 
 try:
     locale.setlocale(locale.LC_ALL, "")
@@ -52,7 +51,7 @@ if os.getenv("PLUTUS_CONFIG"):
         SCRIPT_CONFIG_DIR = os.getcwd()
     SCRIPT_CONFIG = os.getenv("PLUTUS_CONFIG")
 else:
-    SCRIPT_CONFIG_DIR = f'{os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))}/{SCRIPT_NAME}'  # noqa: E501
+    SCRIPT_CONFIG_DIR = f"{os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))}/{SCRIPT_NAME}"  # noqa: E501
     SCRIPT_CONFIG = f"{SCRIPT_CONFIG_DIR}/config.ini"
 
 CONFIG_DEFAULTS = {
@@ -646,7 +645,7 @@ def run_demo_benchmark(n, categories):
         date = f"{year}-{month}-{day}"
 
         category = random.choice(categories)
-        amount = f"{random.uniform(1,5000):.2f}"
+        amount = f"{random.uniform(1, 5000):.2f}"
 
         if "expense" in category.lower():
             amount = f"-{amount}"
@@ -1262,7 +1261,6 @@ def cmd_insert(args):
         y = y.lower()
 
         if y == "y":
-
             break
 
     # ------------------------------------------------------------------------

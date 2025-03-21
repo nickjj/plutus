@@ -5,8 +5,7 @@ import io
 import os
 import sys
 import unittest
-from subprocess import PIPE
-from subprocess import Popen
+from subprocess import PIPE, Popen
 
 PLUTUS = None
 SCRIPT_PATH = "src/plutus"
@@ -439,9 +438,7 @@ class TestCLI(unittest.TestCase):
         actual_categories = []
 
         for line in lines:
-            if line == first_category:
-                actual_categories.append(line)
-            elif line == last_category:
+            if line in (first_category, last_category):
                 actual_categories.append(line)
 
         # This does check to make sure they are sorted correctly.
@@ -468,9 +465,7 @@ class TestCLI(unittest.TestCase):
             if line == expected_headers:
                 actual_headers = expected_headers
 
-            if line == first_line:
-                actual_items.append(line)
-            elif line == last_line:
+            if line in (first_line, last_line):
                 actual_items.append(line)
 
         self.assertEqual(expected_headers, actual_headers)
