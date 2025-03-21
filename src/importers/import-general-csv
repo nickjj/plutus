@@ -30,7 +30,7 @@ if os.getenv("PLUTUS_CONFIG"):
         SCRIPT_CONFIG_DIR = os.getcwd()
     SCRIPT_CONFIG = os.getenv("PLUTUS_CONFIG")
 else:
-    SCRIPT_CONFIG_DIR = f'{os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))}/plutus'  # noqa: E501
+    SCRIPT_CONFIG_DIR = f"{os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))}/plutus"  # noqa: E501
     SCRIPT_CONFIG = f"{SCRIPT_CONFIG_DIR}/{SCRIPT_NAME}.ini"
 
 CONFIG = {
@@ -526,7 +526,6 @@ Here's the stack trace:
                     )
 
     if args.summary != "":
-
         for k, v in aggregator.items():
             if not v:
                 continue

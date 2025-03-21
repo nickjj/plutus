@@ -766,9 +766,8 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
     # the current year (ie. 2025 == 2025.00).
     #
     # You can search for `2025\.` to get amounts of 2025.XX.
-    if re.match(r"^\d{4}$", pattern) or pattern_q:
-        if pattern[0] != "^":
-            pattern = f"^{pattern}"
+    if (re.match(r"^\d{4}$", pattern) or pattern_q) and pattern[0] != "^":
+        pattern = f"^{pattern}"
 
     with open(PLUTUS_PROFILE) as csvfile:
         output_1, output_2 = tee(csvfile)
@@ -989,13 +988,10 @@ def cmd_show(args):
                 aggregated_items[item[summary_col]]["amount"] += item[2]
                 aggregated_items[item[summary_col]]["items"] += 1
 
-        id = 0
         total = 0
         aggregate_result = []
 
         for key, value in aggregated_items.items():
-            id += 1
-
             total += aggregated_items[key]["amount"]
             amount_ = round(value["amount"], 2)
 
@@ -1195,10 +1191,7 @@ def cmd_insert(args):
 
         description = description.strip()
 
-        if description:
-            raw_description = f'"{description}"'
-        else:
-            raw_description = ""
+        raw_description = f'"{description}"' if description else ""
 
         description_error = validate_description(
             description, raw_description, 1, description
@@ -1223,10 +1216,7 @@ def cmd_insert(args):
 
         notes = notes.strip()
 
-        if notes:
-            raw_notes = f'"{notes}"'
-        else:
-            raw_notes = ""
+        raw_notes = f'"{notes}"' if notes else ""
 
         notes_error = validate_notes(notes, raw_notes, 1, notes)
 
@@ -1680,9 +1670,8 @@ Confirm self employment business expenses:
 
     # Avoid showing the example and custom templates at once. It's likely that
     # if someone has their own template, they don't want to see the example.
-    if all or args.template_example:
-        if not all:
-            print(template_example)
+    if (all or args.template_example) and not all:
+        print(template_example)
 
     if all or args.template:
         if os.path.exists(CONFIG_INFO_TEMPLATE):
