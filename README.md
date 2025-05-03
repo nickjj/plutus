@@ -11,6 +11,11 @@ It's a zero dependency Python script. No package managers required! Installing
 it is curling down 1 file, or perhaps 2 files if you want to use the general
 purpose CSV importer for bank exports or migrating from other tools.
 
+*This repo hasn't gotten updated in X number of weeks, is this project dead?
+Absolutely not! I use it all the time, it helps me file taxes and I currently
+do all of my quarterly taxes with it in minutes. It hasn't needed changing so
+far!*
+
 ## 🖥 Demo video
 
 [![Plutus](https://img.youtube.com/vi/mwVnKbne9v4/0.jpg)](https://www.youtube.com/watch?v=mwVnKbne9v4)
