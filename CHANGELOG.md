@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a
 Changelog](https://keepachangelog.com/en/1.0.0/).
 
+
 ## [Unreleased]
+
+- Nothing yet
+
+## [0.7.2] - 2025-05-26
 
 ### Fixed
 
@@ -207,7 +212,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Everything!
 
-[Unreleased]: https://github.com/nickjj/plutus/compare/0.7.1...HEAD
+[Unreleased]: https://github.com/nickjj/plutus/compare/0.7.2...HEAD
+[0.7.2]: https://github.com/nickjj/plutus/compare/0.7.1...0.7.2
 [0.7.1]: https://github.com/nickjj/plutus/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/nickjj/plutus/compare/0.6.3...0.7.0
 [0.6.3]: https://github.com/nickjj/plutus/compare/0.6.2...0.6.3
