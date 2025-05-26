@@ -2185,7 +2185,7 @@ Getting started
     - It gives you a chance to play with the tool without investing a lot of time
 
 Example commands
-  - Run '{SCRIPT_NAME} help' to see examples of which commands you can run
+  - Run '{SCRIPT_NAME} --help' to see examples of which commands you can run
 
 If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}"""  # noqa: E501
 

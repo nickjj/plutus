@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Fixed
+
+- Reference `plutus --help` not `plutus help` in the initial help output
 
 ## [0.7.1] - 2025-02-25
 
