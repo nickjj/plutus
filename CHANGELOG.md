@@ -10,6 +10,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Reference `plutus --help` not `plutus help` in the initial help output
+- Missing `\n` after headers when first creating a profile
 
 ## [0.7.1] - 2025-02-25
 
