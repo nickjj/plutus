@@ -1044,35 +1044,47 @@ def cmd_insert(args):
     # ------------------------------------------------------------------------
     # Category
     # ------------------------------------------------------------------------
-    for i, category in enumerate(unique_categories, start=1):
-        category_picker[str(i)] = category
-        print(f"({i}) {category}")
+    category_index = 1
+    for category in unique_categories:
+        if re.search(rf"{args.category}", category, re.IGNORECASE):
+            category_picker[str(category_index)] = category
+            print(f"({category_index}) {category}")
+            category_index += 1
 
     category = ""
     category_error = 0
     is_new_category = False
 
-    while not category or category_error > 0:
-        category = input(
-            "\nInput a category number or create a new category: "
-        )
-        category = category.strip()
-
-        is_new_category = False
-        if category not in category_picker:
-            category_error = validate_category(
-                category, f'"{category}"', 1, category
+    match len(category_picker):
+        case 0:
+            print(
+                f"'{args.category}' returned no categories, try a different filter"
             )
+            sys.exit(1)
+        case 1:
+            category = category_picker["1"]
+        case _:
+            while not category or category_error > 0:
+                category = input(
+                    "\nInput a category number or create a new category: "
+                )
+                category = category.strip()
 
-            if category_error > 0:
-                continue
+                is_new_category = False
+                if category not in category_picker:
+                    category_error = validate_category(
+                        category, f'"{category}"', 1, category
+                    )
 
-            category = category
-            is_new_category = True
-        else:
-            category = category_picker[category]
+                    if category_error > 0:
+                        continue
 
-        category_error = 0
+                    category = category
+                    is_new_category = True
+                else:
+                    category = category_picker[category]
+
+                category_error = 0
 
     print(f"\nHere's a preview up to the latest 5 items for [{category}]:\n")
 
@@ -1987,6 +1999,14 @@ parser_show.add_argument(
     default=False,
     action="store_true",
     help="View your profile's lines without any processing except filtering",
+)
+
+parser_insert.add_argument(
+    "-c",
+    "--category",
+    metavar="PATTERN",
+    default="",
+    help="Filter categories by a regex pattern",
 )
 
 parser_edit.add_argument(

@@ -8,7 +8,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet
+### Added
+
+- Optional `-c | --category` flag to `plutus insert` to filter categories
 
 ## [0.7.2] - 2025-05-26
 
