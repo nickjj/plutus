@@ -22,7 +22,9 @@ far!*
 
 The above video covers using all of Plutus' features as of 0.4.0. This project
 will evolve over time so check this readme file or the
-[changelog](./CHANGELOG.md) for the latest features and updates.
+[changelog](./CHANGELOG.md) for the latest features and updates. For example
+since this video a [general purpose CSV importer](./src/importers/) and aliases
+were introduced.
 
 With that said, the project does have core goals and ideas which are its DNA
 and vision. Most of what you see in the video will stick around in one way or
