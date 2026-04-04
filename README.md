@@ -16,7 +16,7 @@ Absolutely not! I use it all the time, it helps me file taxes and I currently
 do all of my quarterly taxes with it in minutes. It hasn't needed changing so
 far!*
 
-## 🖥 Demo video
+## 📸 Demo video
 
 [![Plutus](https://img.youtube.com/vi/mwVnKbne9v4/0.jpg)](https://www.youtube.com/watch?v=mwVnKbne9v4)
 
