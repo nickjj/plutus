@@ -448,7 +448,9 @@ class TestCLI(unittest.TestCase):
     def test_info_items(self):
         PLUTUS = load_plutus_module()
 
-        stdout, _stderr, _rc = call_script("info", "--items")
+        stdout, _stderr, _rc = call_script(
+            "info", "--items", "--no-dynamic-years"
+        )
 
         lines = stdout.splitlines()
 
@@ -928,7 +930,7 @@ class TestCLI(unittest.TestCase):
         os.environ["EDITOR"] = "this/should/never/exist"
 
         _stdout, stderr, _rc = call_script("config", "--edit")
-        self.assertIn("not found", stderr)
+        self.assertIn("never/exist", stderr)
 
     def test_config_edit_info_template(self):
         with open(TEST_CONFIG_INFO_TEMPLATE, "w") as file:

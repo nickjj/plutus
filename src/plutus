@@ -1568,7 +1568,7 @@ Categories to use as a starting point
         print("\n".join(info_categories()))
 
     if all or args.items:
-        items = info_items()
+        items = info_items(args.no_dynamic_years)
 
         sort_by_str_date(items)
 
@@ -2107,6 +2107,13 @@ parser_demo_group.add_argument(
 
 # This is a hidden option to make determinstic demos (useful for testing).
 parser_demo.add_argument(
+    "-D",
+    "--no-dynamic-years",
+    default=False,
+    action="store_true",
+    help=argparse.SUPPRESS,
+)
+parser_info.add_argument(
     "-D",
     "--no-dynamic-years",
     default=False,
