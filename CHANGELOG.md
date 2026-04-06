@@ -12,6 +12,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Optional `-c | --category` flag to `plutus insert` to filter categories
 
+### Fixed
+
+- Allow all version flags to run without checking for a profile
+
 ## [0.7.2] - 2025-05-26
 
 ### Fixed

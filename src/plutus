@@ -2154,6 +2154,12 @@ parser_alias.add_argument(
 )
 
 if __name__ == "__main__":
+    # Process these before checking for a profile.
+    if len(sys.argv) == 2 and sys.argv[1] in ("-v", "--version", "version"):
+        # Let's be nice and support a number of ways to get the version.
+        cmd_version()
+        sys.exit(0)
+
     # -------------------------------------------------------------------------
     # Initial profile creation and initialization
     # -------------------------------------------------------------------------
@@ -2222,17 +2228,12 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
     # -------------------------------------------------------------------------
     # What command are we running?
     # -------------------------------------------------------------------------
-    if len(sys.argv) == 2 and sys.argv[1] in ("-v", "--version"):
-        # Let's be nice and support a number of ways to get the version.
-        cmd_version()
-        sys.exit(0)
-
-    args = parser.parse_args()
-
     try:
         config.read(SCRIPT_CONFIG)
     except Exception:
         validate_config()
+
+    args = parser.parse_args()
 
     if args.command not in ("config", "version"):
         validate_config()
@@ -2245,7 +2246,6 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
         "config",
         "demo",
         "info",
-        "version",
     ) and not os.path.exists(PLUTUS_PROFILE):
         display_error(None, "MISSING_PROFILE", PLUTUS_PROFILE)
         sys.exit(1)
@@ -2267,7 +2267,5 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
             cmd_config(args)
         case "alias":
             cmd_alias(args)
-        case "version":
-            cmd_version()
         case None:
             os.system(f"{SCRIPT_PATH} --help")
