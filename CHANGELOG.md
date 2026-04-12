@@ -7,8 +7,6 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-- Nothing yet!
-
 ## [0.7.3] - 2026-04-06
 
 ### Added
