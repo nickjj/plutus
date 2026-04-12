@@ -25,23 +25,34 @@ quality() {
   lint
 }
 
-function test {
+test() {
   # Run test suite
   python3 -m unittest discover --start-directory tests/src "${@}"
 }
 
-function ci:install-deps {
+release() {
+  # Prepare a release, requires: https://github.com/nickjj/git-release
+  git-release \
+    --sources-regex '^(SCRIPT_VERSION = ").*?(")' \
+    --sources "src/plutus" \
+    --sources "src/importers/import-general-csv" \
+    --docs "README.md" \
+    --docs "src/importers/README.md" \
+    "${@}"
+}
+
+ci:install-deps() {
   pip3 install ruff
 }
 
-function ci:test {
+ci:test() {
   lint "${@}"
   ruff check --select I
   format --check
   test "${@}"
 }
 
-function help {
+help() {
   printf "%s <task> [args]\n\nTasks:\n" "${0}"
 
   compgen -A function | grep -v "^_" | cat -n
