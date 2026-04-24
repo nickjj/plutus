@@ -375,6 +375,9 @@ There's a few more options and commands but that's the core of it.
 
 ## ⚡️ Installation
 
+*If you're using [my dotfiles](https://github.com/nickjj/dotfiles), it comes
+pre-installed by default!*
+
 It'll work on any Linux distro, macOS and within WSL 2 on Windows with Python
 3.10+ (2021 release date) which should come installed by default on most
 systems.  There's no additional packages to install.
