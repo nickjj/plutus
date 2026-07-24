@@ -10,4 +10,4 @@ include = [
 ]
 
 [tool.ruff.lint]
-extend-select = ["SIM"]
+extend-select = ["SIM", "E501"]
