@@ -139,7 +139,7 @@ def validate_date(value):
         try:
             convert_date_format(date, value)
             return value
-        except Exception:
+        except ValueError:
             print(traceback.format_exc())
             continue
 
@@ -171,7 +171,7 @@ def validate_col_indexes(value):
             int(notes.strip())
 
         return value
-    except Exception:
+    except (ValueError, IndexError):
         msg = f"'{value}' doesn't appear to have 2 or 3 integer column indexes"
         raise argparse.ArgumentTypeError(msg)
 
@@ -217,7 +217,7 @@ def validate_summary(value):
             int(index.strip())
 
         return indexes
-    except Exception:
+    except ValueError:
         msg = f"'{value}' doesn't appear to have integer column indexes"
         raise argparse.ArgumentTypeError(msg)
 
@@ -248,7 +248,7 @@ def validate_item(value):
     item_count = len(value)
 
     if item_count < 5:
-        raise Exception("PARSE_FAILURE")
+        raise ValueError("PARSE_FAILURE")
 
     return True
 
@@ -326,15 +326,11 @@ def validate_config():
 def convert_date_format(date, input_format):
     date = REGEX_DATE_PATTERN.search(date).group()
 
-    return datetime.strptime(date, input_format).strftime("%Y-%m-%d")
+    return datetime.strptime(date, input_format).strftime("%Y-%m-%d")  # noqa: DTZ007
 
 
 def ignore_category(raw_item):
-    for key, _value in CONFIG["Ignore"].items():
-        if re.search(key, raw_item):
-            return True
-
-    return False
+    return any(re.search(key, raw_item) for key in CONFIG["Ignore"])
 
 
 def duplicate_raw_lines(input):
@@ -450,7 +446,7 @@ def load_imported_csv(args):
                 validate_item(item)
 
                 line = f"{date},{category_quoted},{amount:.2f},{method},{description},{notes}"  # noqa: E501
-            except Exception:
+            except Exception:  # noqa: BLE001
                 comma_count = raw_item.count(",")
 
                 print(f"ERROR [PARSE_FAILURE] L{total_line_count}: {raw_item}")
@@ -479,7 +475,7 @@ Here's the stack trace:
                         continue
 
                     if index not in aggregator:
-                        aggregator[index] = set([])
+                        aggregator[index] = set()
 
                     if column:
                         aggregator[index].add(column)

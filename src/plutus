@@ -13,8 +13,9 @@ import sys
 import textwrap
 import time
 import traceback
-from datetime import datetime
-from decimal import Decimal
+from datetime import date as datetime_date
+from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from io import StringIO
 from itertools import tee
 from subprocess import PIPE, Popen
@@ -101,7 +102,7 @@ def color_diff(diff):
     colored_diff = []
 
     for line in diff:
-        if line.startswith("---") or line.startswith("+++"):
+        if line.startswith(("---", "+++")):
             # Labels.
             colored_diff.append(line)
         elif line.startswith("@@"):
@@ -465,7 +466,7 @@ def validate_date(value, line, raw_item):
     # This will start failing in the year 10000, I'm ok with that.
     if re.match(REGEX_DATE, value):
         try:
-            datetime.strptime(value, "%Y-%m-%d")
+            datetime_date.fromisoformat(value)
         except ValueError:
             display_error(line, "DATE_MISMATCH", raw_item)
             errors += 1
@@ -633,7 +634,7 @@ def run_demo_benchmark(n, categories):
     start_time = time.time()
 
     for i in range(n):
-        year = f"{random.randint(1999, datetime.now().year)}"
+        year = f"{random.randint(1999, datetime.now(timezone.utc).year)}"
         month = f"{random.randint(1, 12):02d}"
         day = f"{random.randint(1, 28):02d}"
         date = f"{year}-{month}-{day}"
@@ -789,7 +790,7 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
                 # If it parses correctly and there's extra columns, we want
                 # to protect against that as soon as possible.
                 if len(item) != CSV_ITEM_COUNT:
-                    raise Exception("FIELDS_COUNT_MISMATCH")
+                    raise Exception("FIELDS_COUNT_MISMATCH")  # noqa: TRY002
 
                 if re.search(pattern, raw_item):
                     # This needs to be converted to a decimal here so it can be
@@ -799,7 +800,7 @@ def load_profile_csv(pattern="", sort="date", sort_summary=False):
                     result["items"]["parsed"].append(item)
                     result["items"]["raw"].append(raw_item.rstrip())
 
-            except Exception:
+            except Exception:  # noqa: BLE001
                 comma_count = raw_item.count(",")
 
                 display_error(total_line_count, "PARSE_FAILURE", raw_item)
@@ -828,7 +829,10 @@ Here's the stack trace:
     return result
 
 
-def print_csv_table(headers, items, table_type, format_columns=[]):
+def print_csv_table(headers, items, table_type, format_columns=None):
+    if format_columns is None:
+        format_columns = []
+
     format_amounts = config.getboolean("Settings", "format_amounts")
     format_negatives = config.getboolean(
         "Settings", "format_negatives_with_parentheses"
@@ -962,7 +966,7 @@ def cmd_show(args):
             unique_aggregate_keys.add(item[summary_col])
 
         aggregated_items = {}
-        unique_aggregate_keys = sorted(list(unique_aggregate_keys))
+        unique_aggregate_keys = sorted(unique_aggregate_keys)
 
         for key in unique_aggregate_keys:
             aggregated_items[key] = {}
@@ -1028,8 +1032,8 @@ def cmd_insert(args):
         unique_categories.add(item[1])
         unique_methods.add(item[3])
 
-    unique_categories = sorted(list(unique_categories))
-    unique_methods = sorted(list(unique_methods))
+    unique_categories = sorted(unique_categories)
+    unique_methods = sorted(unique_methods)
 
     # ------------------------------------------------------------------------
     # Category
@@ -1048,7 +1052,7 @@ def cmd_insert(args):
     match len(category_picker):
         case 0:
             print(
-                f"'{args.category}' returned no categories, try a different filter"
+                f"'{args.category}' returned no categories, try a different filter"  # noqa: E501
             )
             sys.exit(1)
         case 1:
@@ -1069,7 +1073,6 @@ def cmd_insert(args):
                     if category_error > 0:
                         continue
 
-                    category = category
                     is_new_category = True
                 else:
                     category = category_picker[category]
@@ -1102,7 +1105,7 @@ def cmd_insert(args):
     date = ""
     date_error = 0
     is_date_valid = False
-    today = datetime.today().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).date().isoformat()
 
     while not is_date_valid:
         date = input(
@@ -1118,8 +1121,6 @@ def cmd_insert(args):
 
             if date_error > 0:
                 continue
-
-            date = date
 
         is_date_valid = True
 
@@ -1144,7 +1145,7 @@ def cmd_insert(args):
             # In case commas are used, let's silently ignore them as a favor.
             amount = Decimal(amount.replace(",", ""))
             amount = f"{amount:.2f}"
-        except Exception:
+        except InvalidOperation:
             pass
 
         amount_error = validate_amount(amount, 1, amount)
@@ -1172,8 +1173,6 @@ def cmd_insert(args):
 
             if method_error > 0:
                 continue
-
-            method = method
         else:
             method = method_picker[method]
 
@@ -1433,8 +1432,8 @@ def info_items(no_dynamic_years=False):
 
     if not no_dynamic_years:
         # Demos should be up to date but not for our tests!
-        year = datetime.now().year
-        last_year = datetime.now().year - 1
+        year = datetime.now(timezone.utc).date().year
+        last_year = year - 1
 
     items = [
         f"{CSV_HEADERS}",
@@ -2212,7 +2211,7 @@ If you have any issues or feedback visit https://github.com/nickjj/{SCRIPT_NAME}
     # -------------------------------------------------------------------------
     try:
         config.read(SCRIPT_CONFIG)
-    except Exception:
+    except (configparser.Error, OSError):
         validate_config()
 
     args = parser.parse_args()
