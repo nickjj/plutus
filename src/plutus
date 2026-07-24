@@ -184,7 +184,6 @@ def display_log(type, color, line_number, label, item):
         f"{color}{type}{COLOR_RESET} [{COLOR_MAGENTA}{label}{COLOR_RESET}]{line_number_label}: {item}"  # noqa: E501
     )
 
-    return None
 
 
 def display_error(line_number, label, item):
@@ -369,7 +368,6 @@ Please perform the following steps to add the missing items:
 
         sys.exit(1)
 
-    return None
 
 
 def sort_by_str_date(items):
@@ -452,7 +450,6 @@ def validate_item_count(value, line, raw_item):
         # will throw exceptions due to malformed items.
         sys.exit(1)
 
-    return None
 
 
 def validate_whitespace(value, line, raw_item):
@@ -638,7 +635,7 @@ def run_demo_benchmark(n, categories):
 
     start_time = time.time()
 
-    for i in range(0, n):
+    for i in range(n):
         year = f"{random.randint(1999, datetime.now().year)}"
         month = f"{random.randint(1, 12):02d}"
         day = f"{random.randint(1, 28):02d}"
@@ -726,7 +723,6 @@ Once you've saved your rc file, open a new terminal session and re-run this:
 
     os.system(f"{editor} {file}")
 
-    return None
 
 
 def load_profile_csv(pattern="", sort="date", sort_summary=False):
@@ -924,7 +920,6 @@ def print_csv_table(headers, items, table_type, format_columns=[]):
             )
         )
 
-    return None
 
 
 # ----------------------------------------------------------------------------
@@ -954,7 +949,7 @@ def cmd_show(args):
         for i, item in enumerate(items_parsed, start=1):
             print(items_raw[i - 1])
 
-        return None
+        return
 
     if args.summary or args.summary_with_items:
         unique_aggregate_keys = set()
@@ -992,7 +987,7 @@ def cmd_show(args):
         aggregate_result = []
 
         for key, value in aggregated_items.items():
-            total += aggregated_items[key]["amount"]
+            total += value["amount"]
             amount_ = round(value["amount"], 2)
 
             aggregate_result.append([key, amount_, value["items"]])
@@ -1017,11 +1012,11 @@ def cmd_show(args):
         if args.summary_with_items:
             print("\n")
         else:
-            return None
+            return
 
     print_csv_table(headers, items_parsed, "items", format_columns=[3, 4])
 
-    return None
+    return
 
 
 def cmd_insert(args):
@@ -1224,7 +1219,7 @@ def cmd_insert(args):
     while not are_notes_valid:
         notes = input(
             "\nInput notes (personal comments, etc.) or leave it empty: "
-        )  # noqa: E501
+        )
 
         notes = notes.strip()
 
@@ -1274,7 +1269,6 @@ def cmd_insert(args):
     if not cmd_edit(sort=True):
         print("\nYour new item was saved successfully!")
 
-    return None
 
 
 def cmd_edit(sort=True):
@@ -1391,7 +1385,6 @@ def cmd_lint(args):
     if error_count > 0 and not args.no_errors:
         sys.exit(1)
 
-    return None
 
 
 def info_categories():
@@ -1459,7 +1452,7 @@ def info_items(no_dynamic_years=False):
         f'{last_year}-07-17,"Business Expenses:Rent",-1600.00,"Cash",,',
         f'{last_year}-08-24,"Business Expenses:Dining Out",-70.00,"SapphireCard","GOLDEN CORRAL","Dinner with King Midas"',  # noqa: E501
         f'{last_year}-09-15,"Income:Sponsors:OpenSource",0.01,"Checking","NY STOCK EXCHANGE ID: 1507","Zero Cool"',  # noqa: E501
-        f'{last_year}-11-30,"Income:Affiliates:DigitalOcean",25.00,"PayPal","69Y39549RO563415Z","do@example.com"',  # noqa: E501
+        f'{last_year}-11-30,"Income:Affiliates:DigitalOcean",25.00,"PayPal","69Y39549RO563415Z","do@example.com"',
         f'{year}-02-05,"Personal Expenses:Entertainment:Games",-5.03,"FreedomCard","WL *Steam Purchase","Hollow Knight"',  # noqa: E501
         f'{year}-02-28,"Personal Expenses:Travel",-1244.03,"FreedomCard","ICEAIR     000AX7DU80","Flying to Antartica"',  # noqa: E501
         f'{year}-03-17,"Personal Expenses:Groceries",-14.14,"FreedomCard","FARMER\'S MARKET",',  # noqa: E501
@@ -1481,8 +1474,8 @@ def info_items(no_dynamic_years=False):
         f'{year}-10-17,"Income:Consulting",600.00,"Checking","Zelle payment from BOBBY TABLES","Helped with Flask"',  # noqa: E501
         f'{year}-10-30,"Income:Affiliates:Amazon",123.45,"Checking","AMAZON.COM, INC. PAYMENTS",',  # noqa: E501
         f'{year}-11-30,"Income:Affiliates:Amazon",345.67,"Checking","AMAZON.COM, INC. PAYMENTS",',  # noqa: E501
-        f'{year}-11-30,"Income:Affiliates:DigitalOcean",25.00,"PayPal","0Y420200EZ1797431","do@dexample.com"',  # noqa: E501
-        f'{year}-11-30,"Income:Affiliates:DigitalOcean",50.00,"PayPal","27T60611H28616305","do@example.com"',  # noqa: E501
+        f'{year}-11-30,"Income:Affiliates:DigitalOcean",25.00,"PayPal","0Y420200EZ1797431","do@dexample.com"',
+        f'{year}-11-30,"Income:Affiliates:DigitalOcean",50.00,"PayPal","27T60611H28616305","do@example.com"',
         f'{year}-12-30,"Income:Affiliates:Amazon",234.56,"Checking","AMAZON.COM, INC. PAYMENTS",',  # noqa: E501
     ]
 
@@ -1533,7 +1526,7 @@ INCOME_IS_NEGATIVE
   - Amounts in income related categories are negative
 
 EXPENSE_IS_POSITIVE
-  - Amounts in expense related categories are positive"""  # noqa: E501
+  - Amounts in expense related categories are positive"""
 
     return lint_rules
 
@@ -1563,7 +1556,7 @@ Categories to use as a starting point
 - Cannot start or end with a colon (ie. :Hello, Hello: or :Hello:)
 - Cannot have 2 or more colons next to each other (ie. Hello::World)
 ------------------------------------------------------------------------------
-"""  # noqa: E501
+"""
         )
         print("\n".join(info_categories()))
 
@@ -1709,7 +1702,6 @@ Here's the example template file:
 """  # noqa: E501
             )
 
-    return None
 
 
 def cmd_demo(args):
@@ -1732,7 +1724,7 @@ Remove '> /dev/null' to see the output printed, it won't take much longer,
 it redirects to /dev/null to avoid spamming your terminal output"""  # noqa: E501
         )
 
-        return None
+        return
 
     if args.init:
         items = info_items(args.no_dynamic_years)
@@ -1772,7 +1764,7 @@ any profile to get a list of categories to use as inspiration as well as items
 to see how they are formatted. The above command doesn't write anything to disk."""  # noqa: E501
             )
 
-    return None
+    return
 
 
 def cmd_config(args):
@@ -1784,7 +1776,6 @@ def cmd_config(args):
         with open(SCRIPT_CONFIG) as file:
             print(file.read().rstrip("\n"))
 
-    return None
 
 
 def cmd_alias(args):
@@ -1805,7 +1796,7 @@ It has been added automatically, run '{SCRIPT_NAME} alias --help' to learn more"
         print(f"{SCRIPT_CONFIG} has no aliases defined\n")
         print(help_alias())
 
-        return None
+        return
 
     # Let's do our best to provide something helpful.
     if not args.name:
@@ -1871,7 +1862,7 @@ It has been added automatically, run '{SCRIPT_NAME} alias --help' to learn more"
 
     sys.exit(1)
 
-    return None
+    return
 
 
 def cmd_version():

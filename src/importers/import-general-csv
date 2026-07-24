@@ -322,7 +322,6 @@ def validate_config():
                     value, key = key_value_match.groups()
                     CONFIG[current_section][key.strip()] = value.strip()
 
-    return None
 
 
 def convert_date_format(date, input_format):
@@ -376,7 +375,6 @@ def write_temp_output_file(path, items):
         file.write(f"{PLUTUS_HEADERS}\n")
         file.writelines(sorted(items, key=lambda item: (item[0], item)))
 
-    return None
 
 
 def load_imported_csv(args):
@@ -485,8 +483,8 @@ Here's the stack trace:
                     if index not in aggregator:
                         aggregator[index] = set([])
 
-                    if item[index]:
-                        aggregator[index].add(item[index])
+                    if column:
+                        aggregator[index].add(column)
 
             # It's been explicitly ignored, so let's skip it.
             if category_ignored:
@@ -556,7 +554,7 @@ like this can make it easier to skim types of items.
 You can use --summary 1,2 or any column indexes to show only those columns"""  # noqa: E501
         )
 
-        return None
+        return
 
     write_temp_output_file(TEMP_OUTPUT_IGNORED_FILE, ignored_lines)
     write_temp_output_file(TEMP_OUTPUT_SKIPPED_FILE, skipped_lines)
