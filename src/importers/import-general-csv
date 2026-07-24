@@ -323,7 +323,6 @@ def validate_config():
                     CONFIG[current_section][key.strip()] = value.strip()
 
 
-
 def convert_date_format(date, input_format):
     date = REGEX_DATE_PATTERN.search(date).group()
 
@@ -374,7 +373,6 @@ def write_temp_output_file(path, items):
     with open(path, "w") as file:
         file.write(f"{PLUTUS_HEADERS}\n")
         file.writelines(sorted(items, key=lambda item: (item[0], item)))
-
 
 
 def load_imported_csv(args):

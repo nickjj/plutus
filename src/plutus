@@ -185,7 +185,6 @@ def display_log(type, color, line_number, label, item):
     )
 
 
-
 def display_error(line_number, label, item):
     display_log("ERROR", COLOR_RED, line_number, label, item)
 
@@ -369,7 +368,6 @@ Please perform the following steps to add the missing items:
         sys.exit(1)
 
 
-
 def sort_by_str_date(items):
     return items.sort(key=lambda item: (item[0].isdigit(), item))
 
@@ -449,7 +447,6 @@ def validate_item_count(value, line, raw_item):
         # This one always exits early because the others won't work and
         # will throw exceptions due to malformed items.
         sys.exit(1)
-
 
 
 def validate_whitespace(value, line, raw_item):
@@ -687,7 +684,7 @@ def run_demo_benchmark(n, categories):
         stderr=PIPE,
         text=True,
     )
-    stdout, _stderr = process.communicate()
+    _stdout, _stderr = process.communicate()
 
     duration = (time.time() - start_time) * 1000
     print(
@@ -722,7 +719,6 @@ Once you've saved your rc file, open a new terminal session and re-run this:
         sys.exit(1)
 
     os.system(f"{editor} {file}")
-
 
 
 def load_profile_csv(pattern="", sort="date", sort_summary=False):
@@ -919,7 +915,6 @@ def print_csv_table(headers, items, table_type, format_columns=[]):
                 ]
             )
         )
-
 
 
 # ----------------------------------------------------------------------------
@@ -1270,7 +1265,6 @@ def cmd_insert(args):
         print("\nYour new item was saved successfully!")
 
 
-
 def cmd_edit(sort=True):
     if not sort:
         open_file_in_editor(PLUTUS_PROFILE, "edit")
@@ -1384,7 +1378,6 @@ def cmd_lint(args):
 
     if error_count > 0 and not args.no_errors:
         sys.exit(1)
-
 
 
 def info_categories():
@@ -1703,7 +1696,6 @@ Here's the example template file:
             )
 
 
-
 def cmd_demo(args):
     categories = info_categories()
 
@@ -1775,7 +1767,6 @@ def cmd_config(args):
     else:
         with open(SCRIPT_CONFIG) as file:
             print(file.read().rstrip("\n"))
-
 
 
 def cmd_alias(args):

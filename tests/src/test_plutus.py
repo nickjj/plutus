@@ -282,7 +282,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("FIELDS_COUNT_MISMATCH", stdout)
 
     def test_lint_invalid_amount(self):
-        stdout, stderr, rc = replace_csv_line(1, '2024-01-12,"A",+1.00,"B",,')
+        stdout, _stderr, rc = replace_csv_line(1, '2024-01-12,"A",+1.00,"B",,')
         self.assertIn("AMOUNT_MISMATCH", stdout)
         self.assertEqual(1, rc)
 
@@ -296,40 +296,42 @@ class TestCLI(unittest.TestCase):
         self.assertIn("PARSE_FAILURE", stdout)
 
     def test_lint_warning_amount(self):
-        stdout, stderr, rc = replace_csv_line(
+        stdout, _stderr, _rc = replace_csv_line(
             1, '2024-01-12,"Income",-1.00,"B",,'
         )
         self.assertIn("INCOME_IS_NEGATIVE", stdout)
 
-        stdout, stderr, rc = replace_csv_line(
+        stdout, _stderr, _rc = replace_csv_line(
             1, '2024-01-12,"Tax:Refunds",-1.00,"B",,'
         )
         self.assertIn("INCOME_IS_NEGATIVE", stdout)
 
-        stdout, stderr, rc = replace_csv_line(
+        stdout, _stderr, _rc = replace_csv_line(
             1, '2024-01-12,"Business Expense",1.00,"B",,'
         )
         self.assertIn("EXPENSE_IS_POSITIVE", stdout)
 
     def test_lint_warning_amount_ignored(self):
-        stdout, stderr, rc = replace_csv_line(
+        stdout, _stderr, _rc = replace_csv_line(
             1, '2024-01-12,"Income",-1.00,"B",,', "--no-warnings"
         )
         self.assertNotIn("INCOME_IS_NEGATIVE", stdout)
 
-        stdout, stderr, rc = replace_csv_line(
+        stdout, _stderr, _rc = replace_csv_line(
             1, '2024-01-12,"Tax:Refunds",-1.00,"B",,', "--no-warnings"
         )
 
         self.assertNotIn("INCOME_IS_NEGATIVE", stdout)
 
-        stdout, stderr, rc = replace_csv_line(
+        stdout, _stderr, _rc = replace_csv_line(
             1, '2024-01-12,"Business Expense",1.00,"B",,', "--no-warnings"
         )
         self.assertNotIn("EXPENSE_IS_POSITIVE", stdout)
 
     def test_lint_invalid_method(self):
-        stdout, stderr, rc = replace_csv_line(1, '2024-01-12,"A",1.00,"B\'",,')
+        stdout, _stderr, rc = replace_csv_line(
+            1, '2024-01-12,"A",1.00,"B\'",,'
+        )
         self.assertIn("METHOD_MISMATCH", stdout)
         self.assertEqual(1, rc)
 
@@ -936,7 +938,7 @@ class TestCLI(unittest.TestCase):
         with open(TEST_CONFIG_INFO_TEMPLATE, "w") as file:
             file.write("Hello")
 
-        stdout, _stderr, rc = call_script("config", "--edit-info")
+        stdout, _stderr, _rc = call_script("config", "--edit-info")
 
         self.assertIn("Hello", stdout)
 
