@@ -13,8 +13,8 @@ import sys
 import textwrap
 import time
 import traceback
+from datetime import UTC, datetime
 from datetime import date as datetime_date
-from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from io import StringIO
 from itertools import tee
@@ -634,7 +634,7 @@ def run_demo_benchmark(n, categories):
     start_time = time.time()
 
     for i in range(n):
-        year = f"{random.randint(1999, datetime.now(timezone.utc).year)}"
+        year = f"{random.randint(1999, datetime.now(UTC).year)}"
         month = f"{random.randint(1, 12):02d}"
         day = f"{random.randint(1, 28):02d}"
         date = f"{year}-{month}-{day}"
@@ -1105,7 +1105,7 @@ def cmd_insert(args):
     date = ""
     date_error = 0
     is_date_valid = False
-    today = datetime.now(timezone.utc).date().isoformat()
+    today = datetime.now(UTC).date().isoformat()
 
     while not is_date_valid:
         date = input(
@@ -1432,7 +1432,7 @@ def info_items(no_dynamic_years=False):
 
     if not no_dynamic_years:
         # Demos should be up to date but not for our tests!
-        year = datetime.now(timezone.utc).date().year
+        year = datetime.now(UTC).date().year
         last_year = year - 1
 
     items = [

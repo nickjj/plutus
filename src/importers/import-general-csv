@@ -326,7 +326,7 @@ def validate_config():
 def convert_date_format(date, input_format):
     date = REGEX_DATE_PATTERN.search(date).group()
 
-    return datetime.strptime(date, input_format).strftime("%Y-%m-%d")  # noqa: DTZ007
+    return datetime.strptime(date, input_format).strftime("%Y-%m-%d")
 
 
 def ignore_category(raw_item):
