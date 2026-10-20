@@ -13,12 +13,16 @@ import sys
 import textwrap
 import time
 import traceback
-from datetime import UTC, datetime
 from datetime import date as datetime_date
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from io import StringIO
 from itertools import tee
 from subprocess import PIPE, Popen
+
+# Added to make the transition to Python 3.11+ more seamless since Python 3.10+
+# is targeted for now.
+UTC = timezone.utc
 
 try:
     locale.setlocale(locale.LC_ALL, "")
